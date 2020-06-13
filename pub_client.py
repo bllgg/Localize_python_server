@@ -45,6 +45,7 @@ try:
         y = json.dumps(x)
         client.publish("python/test",y,2)
         i += 1
+        print("sent data")
         time.sleep(2)
  
 except KeyboardInterrupt:
