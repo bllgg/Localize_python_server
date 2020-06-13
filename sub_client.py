@@ -2,6 +2,7 @@ import paho.mqtt.client as mqttClient
 import time
 import json
 import pandas as pd
+import csv
 
 def on_connect(client, userdata, flags, rc):
  
@@ -19,14 +20,12 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, message):
     msg = message.payload.decode()
     print ("Message received: "  + msg)
-    f = open("demofile2.txt", "a")
-    f.write("Now the file has more content!")
-    f.close()
-    
-def write_to_csv(data):
-    df = pd.DataFrame(data)
-    df.to_csv('sensor_data.csv', mode='a', header=False)
-
+    value = json.loads(message.payload.decode())
+    print(type(value))
+    #write_to_csv(value)
+    with open('mycsvfile.csv', 'a') as f:  # Just use 'w' mode in 3.x
+        w = csv.writer(f)
+        w.writerow(value.values())
 
  
 Connected = False   #global variable for the state of the connection
@@ -51,7 +50,7 @@ client.connect(broker_address, port=port)          #connect to broker
  
 client.loop_start()        #start the loop
 
-sensor_data=[]
+
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
  
