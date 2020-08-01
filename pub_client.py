@@ -22,10 +22,10 @@ port = 17595
 user = "twhkvnkt"
 password = "0qLBb25EOa3T"
 '''
-broker_address= "192.168.8.100"  #Broker address
+broker_address= "192.168.8.102"  #Broker address
 port = 1883                         #Broker port
-user = "twhkvnkt"
-password = "0qLBb25EOa3T"            #Connection password
+user = "mqtt_server"
+password = "1234"            #Connection password
  
 client = mqttClient.Client("Python_pub")               #create new instance
 client.username_pw_set(user, password=password)    #set username and password
