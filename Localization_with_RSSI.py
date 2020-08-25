@@ -1,10 +1,20 @@
 import rssi_to_distance as rssi_dis
 ##import trilateration as tr
 import localization as lx
-##import thread
+from threading import Thread
 import math
 import json
 import time
+import sys
+import os
+
+# Disable printings
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore printings
+def enablePrint():
+    sys.stdout = sys.__stdout__
 
 device_queue = {}
 
@@ -20,7 +30,7 @@ def calc_location(details, device_id):
 
     P.solve()
     device_queue[device_id]["location"] = t.loc
-    return t.loc
+    print (t.loc)
 
 '''
 temporary function. the coordinates should received from a data base
@@ -48,10 +58,10 @@ def localization_with_rssi(json_data):
     receiver_x, receiver_y = get_coords_receiver(receivers_MAC) ## collect data from database
     rssi = json_data["RSSI"]
     tx_pow = json_data["tx_pow"]
-    distance = rssi_dis.rssi_to_dist(tx_pow, rssi, 14.25)
+    distance = rssi_dis.rssi_to_dist(tx_pow, rssi, 9.25)
     
     if device_id not in device_queue:
-        device_queue[device_id] = {"s_1":[], "s_2":[], "s_3":[], "location" : []}
+        device_queue[device_id] = {"s_1":[], "s_2":[], "s_3":[], "location" :[]}
         if sequence_number % 3 == 0:
             device_queue[device_id]["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
         elif sequence_number % 3 == 1:
@@ -62,8 +72,10 @@ def localization_with_rssi(json_data):
         if sequence_number % 3 == 0:
             device_queue[device_id]["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
             if len(device_queue[device_id]["s_1"]) >= 3:
-                location = calc_location(device_queue[device_id]["s_1"], device_id)
-                print(location)
+                calc_location(device_queue[device_id]["s_1"], device_id)
+                #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
+                #thr.start()
+                #print(location)
                 device_queue[device_id]["S_2"] = []
                 device_queue[device_id]["S_3"] = []
                 
@@ -71,8 +83,10 @@ def localization_with_rssi(json_data):
         elif sequence_number % 3 == 1:
             device_queue[device_id]["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
             if len(device_queue[device_id]["s_2"]) >= 3:
-                location = calc_location(device_queue[device_id]["s_2"], device_id)
-                print(location)
+                calc_location(device_queue[device_id]["s_2"], device_id)
+                #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
+                #thr.start()
+                #print(location)
                 device_queue[device_id]["S_1"] = []
                 device_queue[device_id]["S_3"] = []
                 
@@ -80,8 +94,10 @@ def localization_with_rssi(json_data):
         else:
             device_queue[device_id]["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
             if len(device_queue[device_id]["s_3"]) >= 3:
-                location = calc_location(device_queue[device_id]["s_3"], device_id)
-                print(location)
+                calc_location(device_queue[device_id]["s_3"], device_id)
+                #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
+                #thr.start()
+                #print(location)
                 device_queue[device_id]["S_1"] = []
                 device_queue[device_id]["S_2"] = []
 
@@ -93,49 +109,19 @@ def localization_with_rssi(json_data):
 
 import csv
 
+print("Without threading")
+blockPrint()
+start_time = time.time()
 with open('Collected_Data/moving_2m.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         print(row[0], row[1], row[2])
-        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": 0, "RSSI": int(row[3]), "MAC": row[1]}
+        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -24, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyro_x": row[7], "gyro_y": row[8], "gyro_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
         j_d = json.dumps(json_data)
+        #thr = Thread(target=localization_with_rssi, args=(j_d,))
+        #thr.start()
         localization_with_rssi(j_d)
-        #time.sleep(0.5)
+stop_time = time.time()
 
-'''
-for seq_num in range(4):
-    json_1 = {"seq_num": seq_num, "dev_id": 30, "tx_pow": -20, "RSSI": -37, "MAC": 5007, "acc_x": 0.1, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-    json_2 = {"seq_num": seq_num, "dev_id": 30, "tx_pow": -20, "RSSI": -37, "MAC": 5008, "acc_x": 0.2, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-    json_3 = {"seq_num": seq_num, "dev_id": 30, "tx_pow": -20, "RSSI": -37, "MAC": 5009, "acc_x": 0.3, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-
-    j_1 = json.dumps(json_1)
-    j_2 = json.dumps(json_2)
-    j_3 = json.dumps(json_3)
-
-    #print(j_1)
-
-    localization_with_rssi(j_1)
-    localization_with_rssi(j_2)
-    localization_with_rssi(j_3)
-
-
-    json_10 = {"seq_num": seq_num, "dev_id": 300, "tx_pow": -20, "RSSI": -43, "MAC": 50007, "acc_x": 0.1, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-    json_20 = {"seq_num": seq_num, "dev_id": 300, "tx_pow": -20, "RSSI": -43, "MAC": 50008, "acc_x": 0.2, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-    json_30 = {"seq_num": seq_num, "dev_id": 300, "tx_pow": -20, "RSSI": -43, "MAC": 50009, "acc_x": 0.3, "acc_y": seq_num+2, "acc_z": seq_num+3, "gyro_x": seq_num+1, "gyro_y": seq_num+2, "gyro_z": seq_num+3, "mag_x": seq_num+0.1, "mag_y": seq_num+0.2, "mag_z": seq_num+0.3 }
-
-    j_10 = json.dumps(json_10)
-    j_20 = json.dumps(json_20)
-    j_30 = json.dumps(json_30)
-
-    #print(j_1)
-
-    localization_with_rssi(j_10)
-    localization_with_rssi(j_20)
-    localization_with_rssi(j_30)
-    #time.sleep(0.2)
-
-print(device_queue)
-
-print(device_queue[30]["location"])
-print(device_queue[300]["location"])
-'''
+enablePrint()
+print("--- %s seconds ---" % (time.time() - start_time))
