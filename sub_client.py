@@ -35,7 +35,7 @@ user = "twhkvnkt"
 password = "0qLBb25EOa3T"            #Connection password
 '''
 
-broker_address= "192.168.8.102"  #Broker address
+broker_address= "192.168.8.103"  #Broker address
 port = 1883                         #Broker port
 user = "mqtt_server"
 password = "1234"            #Connection password
@@ -53,8 +53,10 @@ client.loop_start()        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
  
-client.subscribe("/topic/qos1",2)
- 
+client.subscribe("/topic/esp1",2)
+client.subscribe("/topic/esp2",2)
+client.subscribe("/topic/esp3",2)
+
 try:
     while True:
         time.sleep(1)
