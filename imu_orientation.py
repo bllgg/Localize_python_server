@@ -2,9 +2,10 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 import math
+from scipy.integrate import cumtrapz
 
 pi = math.pi
-
+dt = 0.1
 def computeOrientation(AccelVals, MagVals):
     roll = np.arctan2(AccelVals[1], AccelVals[2] + 0.05*AccelVals[0])
     pitch = np.arctan2(-1*AccelVals[0], np.sqrt(np.square(AccelVals[1]) + np.square(AccelVals[2])))
@@ -83,54 +84,59 @@ with open('mycsvfile.csv') as csvfile:
         print('\n')
 
 
-plt.subplot(331)
-plt.plot(seq_no, p_x_ary)
-plt.ylabel("phone's x_acc")
-plt.xlabel("seq num")
-
-plt.subplot(332)
-plt.plot(seq_no, p_y_ary)
-plt.ylabel("phone's y_acc")
-plt.xlabel("seq num")
-
-plt.subplot(333)
-plt.plot(seq_no, p_z_ary)
-plt.ylabel("phone's z_acc")
-plt.xlabel("seq num")
-
-plt.subplot(334)
-plt.plot(seq_no, e_x_ary)
-plt.ylabel("earth's x_acc")
-plt.xlabel("seq num")
-
-plt.subplot(335)
-plt.plot(seq_no, e_y_ary)
-plt.ylabel("earth's y_acc")
-plt.xlabel("seq num")
-
-plt.subplot(336)
-plt.plot(seq_no, e_z_ary)
-plt.ylabel("earth's z_acc")
-plt.xlabel("seq num")
-
-plt.subplot(337)
-plt.plot(seq_no, roll_ary)
-plt.ylabel("roll angle")
-plt.xlabel("seq num")
-
-plt.subplot(338)
-plt.plot(seq_no, pitch_ary)
-plt.ylabel("pitch angle")
-plt.xlabel("seq num")
-
-plt.subplot(339)
-plt.plot(seq_no, yaw_ary)
-plt.ylabel("yaw angle")
-plt.xlabel("seq num")
-
-plt.suptitle("IMU data")
+# plt.subplot(331)
+# plt.plot(seq_no, p_x_ary)
 # plt.ylabel("phone's x_acc")
-# plt.xlabel("time")
+# plt.xlabel("seq num")
+
+# plt.subplot(332)
+# plt.plot(seq_no, p_y_ary)
+# plt.ylabel("phone's y_acc")
+# plt.xlabel("seq num")
+
+# plt.subplot(333)
+# plt.plot(seq_no, p_z_ary)
+# plt.ylabel("phone's z_acc")
+# plt.xlabel("seq num")
+
+# plt.subplot(334)
+# plt.plot(seq_no, e_x_ary)
+# plt.ylabel("earth's x_acc")
+# plt.xlabel("seq num")
+
+# plt.subplot(335)
+# plt.plot(seq_no, e_y_ary)
+# plt.ylabel("earth's y_acc")
+# plt.xlabel("seq num")
+
+# plt.subplot(336)
+# plt.plot(seq_no, e_z_ary)
+# plt.ylabel("earth's z_acc")
+# plt.xlabel("seq num")
+
+# plt.subplot(337)
+# plt.plot(seq_no, roll_ary)
+# plt.ylabel("roll angle")
+# plt.xlabel("seq num")
+
+# plt.subplot(338)
+# plt.plot(seq_no, pitch_ary)
+# plt.ylabel("pitch angle")
+# plt.xlabel("seq num")
+
+# plt.subplot(339)
+# plt.plot(seq_no, yaw_ary)
+# plt.ylabel("yaw angle")
+# plt.xlabel("seq num")
+
+# plt.suptitle("IMU data")
+
+# plt.show()
+
+x_pos =cumtrapz(cumtrapz(e_x_ary,dx=dt),dx=dt)
+y_pos =cumtrapz(cumtrapz(e_y_ary,dx=dt),dx=dt)
+
+# plt.subplot(111)
+plt.plot(x_pos, y_pos)
+plt.suptitle("Position")
 plt.show()
-
-
