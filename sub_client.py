@@ -28,17 +28,17 @@ def on_message(client, userdata, message):
 
  
 Connected = False   #global variable for the state of the connection
-'''
+
 broker_address= "m11.cloudmqtt.com"  #Broker address
 port = 17595                         #Broker port
 user = "twhkvnkt"
 password = "0qLBb25EOa3T"            #Connection password
-'''
 
-broker_address= "192.168.8.103"  #Broker address
-port = 1883                         #Broker port
-user = "mqtt_server"
-password = "1234"            #Connection password
+
+# broker_address= "192.168.8.103"  #Broker address
+# port = 1883                         #Broker port
+# user = "mqtt_server"
+# password = "1234"            #Connection password
  
 client = mqttClient.Client("Python_sub")               #create new instance
 client.username_pw_set(user, password=password)    #set username and password
