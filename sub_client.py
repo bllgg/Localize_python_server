@@ -22,7 +22,7 @@ def on_message(client, userdata, message):
     print ("Message received: "  + msg)
     value = json.loads(message.payload.decode())
     # print(type(value))
-    with open('mycsvfile.csv', 'a') as f:  # Just use 'w' mode in 3.x
+    with open('mycsvfile.csv', 'a', newline='') as f:  # Just use 'w' mode in 3.x
         w = csv.writer(f)
         w.writerow(value.values())
 
