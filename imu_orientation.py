@@ -57,7 +57,7 @@ yaw_ary=[]
 
 seq_no=[]
 j=0
-with open('mycsvfile.csv') as csvfile:
+with open('test.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     for row in readCSV:
         seq_no.append(j)
@@ -76,7 +76,8 @@ with open('mycsvfile.csv') as csvfile:
         yaw_ary.append(yaw*180/pi)
         # print (f"orientations roll {roll} pitch {pitch} yaw {yaw}")
         acc_ary = np.array(acc_ary)
-        earth_accels = R_z(yaw) @ R_y(roll) @ R_x(pitch) @ acc_ary
+        i_R = np.linalg.inv(R_z(yaw) @ R_y(roll) @ R_x(pitch))
+        earth_accels = i_R @ acc_ary
         e_x_ary.append(earth_accels[0])
         e_y_ary.append(earth_accels[1])
         e_z_ary.append(earth_accels[2])

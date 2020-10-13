@@ -204,7 +204,7 @@ class Madgwick:
 		g = np.array([0.0, gx, gy, gz])
 		g = np.radians(g)
 		qDot = 0.5*(self.quaternionMul(self.q,g))
-
+		# print(self.q)
 		a = np.array([0.0, ax, ay, az])
 		a = self.normalizeq(a)
 
