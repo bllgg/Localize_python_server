@@ -21,8 +21,8 @@ class Madgwick:
 		"""
 		
 		GyroMeasError = np.pi * (40.0 / 180.0)
-		self.beta = np.sqrt(3.0 / 4.0) * GyroMeasError
-		# self.beta = b
+		# self.beta = np.sqrt(3.0 / 4.0) * GyroMeasError
+		self.beta = b
 		self.q = np.array([1.0, 0.0, 0.0, 0.0])
 		self.roll = 0
 		self.pitch = 0

@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import math
 from scipy.integrate import cumtrapz
 import numpy as np
+from statistics import mean
+
+G_A = 9.81
 
 pi = math.pi
 dt = 0.1
@@ -28,13 +31,22 @@ e_x_ary=[]
 e_y_ary=[]
 e_z_ary=[]
 
+prev_ar = [0, 0, 0]
+new_arr = [0, 0, 0]
+mean_eax = 0
+mean_eay = 0
+
 with open('test.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     for row in readCSV:
         seq_no.append(a)
         a+=1
         # acc_ary.append(row[4:7])
-        acc_ary = [float(i) for i in row[4:7]]
+        acc_ary = [float(i)*G_A for i in row[4:7]]
+        new_arr = [a + b for a, b in zip(acc_ary, prev_ar)]
+        prev_ar = [number / 2 for number in new_arr]
+
+        acc_ary = prev_ar
         # p_x_ary.append(float(row[4]))
         # p_y_ary.append(float(row[5]))
         # p_z_ary.append(float(row[6]))
@@ -59,8 +71,8 @@ with open('test.csv') as csvfile:
         acc_ary = np.array(acc_ary)
         earth_accels = R @ acc_ary
 
-        e_x_ary.append(earth_accels[0])
-        e_y_ary.append(earth_accels[1])
+        e_x_ary.append(earth_accels[0]+0.12674429645160612 )
+        e_y_ary.append(earth_accels[1]+0.3265363495237987)
         e_z_ary.append(earth_accels[2])
 
 
@@ -93,6 +105,7 @@ with open('test.csv') as csvfile:
 
 # print(roll_ary)
 
+plt.figure()
 plt.subplot(331)
 plt.plot(seq_no, p_x_ary)
 plt.ylabel("phone's x_acc")
@@ -140,4 +153,33 @@ plt.xlabel("seq num")
 
 plt.suptitle("IMU data")
 
+# plt.show()
+plt.figure()
+x_pos = cumtrapz(cumtrapz(e_x_ary,dx=0.1),dx=0.1)
+y_pos = cumtrapz(cumtrapz(e_y_ary,dx=0.1),dx=0.1)
+
+plt.plot(seq_no[2:], y_pos)
+plt.suptitle("y Position")
+
+plt.figure()
+plt.plot(seq_no[2:], x_pos)
+plt.suptitle("x Position")
+
+plt.figure()
+x_v = cumtrapz(e_x_ary,dx=0.1)
+y_v = cumtrapz(e_y_ary,dx=0.1)
+
+plt.plot(seq_no[1:], y_v)
+plt.suptitle("y Speed")
+
+plt.figure()
+plt.plot(seq_no[1:], x_v)
+plt.suptitle("x Speed")
+# plt.subplot(111)
+
+print("mean x", mean(e_x_ary))
+print("mean y", mean(e_y_ary))
+print("mean z", mean(e_z_ary))
+
 plt.show()
+
