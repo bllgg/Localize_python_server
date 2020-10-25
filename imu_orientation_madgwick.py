@@ -6,6 +6,7 @@ import math
 from scipy.integrate import cumtrapz
 import numpy as np
 from statistics import mean
+from scipy.signal import detrend
 
 G_A = 9.81
 
@@ -27,6 +28,10 @@ p_x_ary=[]
 p_y_ary=[]
 p_z_ary=[]
 
+p_x_gyr=[]
+p_y_gyr=[]
+p_z_gyr=[]
+
 e_x_ary=[]
 e_y_ary=[]
 e_z_ary=[]
@@ -42,7 +47,7 @@ with open('test.csv') as csvfile:
         seq_no.append(a)
         a+=1
         # acc_ary.append(row[4:7])
-        acc_ary = [float(i)*G_A for i in row[4:7]]
+        acc_ary = [round(float(i),3)*G_A for i in row[4:7]]
         new_arr = [a + b for a, b in zip(acc_ary, prev_ar)]
         prev_ar = [number / 2 for number in new_arr]
 
@@ -55,10 +60,15 @@ with open('test.csv') as csvfile:
         p_z_ary.append(acc_ary[2])
         # gyr_ary.append(row[7:10])
         # mag_ary.append(row[10:])
-        gyr_ary = [float(i) for i in row[7:10]]
-        mag_ary = [float(i) for i in row[10:]]
+        gyr_ary = [round(float(i),3) for i in row[7:10]]
+        
+        p_x_gyr.append(gyr_ary[0])
+        p_y_gyr.append(gyr_ary[1])
+        p_z_gyr.append(gyr_ary[2])
+
+        mag_ary = [round(float(i),3) for i in row[10:]]
         for j in range(10):
-            sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0], gyr_ary[1], gyr_ary[2], mag_ary[0], mag_ary[1], mag_ary[2], dt)
+            sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0] + 0.00246, gyr_ary[1] - 0.00185, gyr_ary[2] + 0.00285, mag_ary[0], mag_ary[1], mag_ary[2], dt)
         
         roll_ary.append(sensorfusion.roll)
         pitch_ary.append(sensorfusion.pitch)
@@ -71,11 +81,12 @@ with open('test.csv') as csvfile:
         acc_ary = np.array(acc_ary)
         earth_accels = R @ acc_ary
 
-        e_x_ary.append(earth_accels[0]+0.12674429645160612 )
-        e_y_ary.append(earth_accels[1]+0.3265363495237987)
-        e_z_ary.append(earth_accels[2])
+        e_x_ary.append(round(earth_accels[0] + 0.0187,1))
+        e_y_ary.append(round(earth_accels[1] - 0.218,1))
+        e_z_ary.append(round(earth_accels[2],1))
 
-
+# e_x_ary = detrend(e_x_ary)
+# e_y_ary = detrend(e_y_ary)
 
 # acc_ary = np.array(acc_ary)
 # for i in seq_no:
@@ -180,6 +191,16 @@ plt.suptitle("x Speed")
 print("mean x", mean(e_x_ary))
 print("mean y", mean(e_y_ary))
 print("mean z", mean(e_z_ary))
+
+print("mean x gyr", mean(p_x_gyr))
+print("mean y gyr", mean(p_y_gyr))
+print("mean z gyr", mean(p_z_gyr))
+
+plt.figure()
+plt.subplot(121)
+plt.hist(e_x_ary, bins = 100)
+plt.subplot(122)
+plt.hist(e_y_ary, bins = 100)
 
 plt.show()
 
