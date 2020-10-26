@@ -74,35 +74,38 @@ def localization_with_rssi(json_data):
     else:
         if sequence_number % 3 == 0:
             device_queue[device_id]["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_1"]) == 3:
-                calc_location(device_queue[device_id]["s_1"], device_id)
+            if len(device_queue[device_id]["s_1"]) >= 3:
+                if len(device_queue[device_id]["s_1"]) == 3:
+                    calc_location(device_queue[device_id]["s_1"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
                 #thr.start()
-                # print(location)
-                device_queue[device_id]["S_2"] = []
-                device_queue[device_id]["S_3"] = []
+                print("1")
+                device_queue[device_id]["s_2"] = []
+                device_queue[device_id]["s_3"] = []
                 
                 ##save location in data base
         elif sequence_number % 3 == 1:
             device_queue[device_id]["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_2"]) == 3:
-                calc_location(device_queue[device_id]["s_2"], device_id)
+            if len(device_queue[device_id]["s_2"]) >= 3:
+                if len(device_queue[device_id]["s_2"]) == 3:
+                    calc_location(device_queue[device_id]["s_2"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
                 #thr.start()
-                # print(location)
-                device_queue[device_id]["S_1"] = []
-                device_queue[device_id]["S_3"] = []
+                print("2")
+                device_queue[device_id]["s_1"] = []
+                device_queue[device_id]["s_3"] = []
                 
                 ##save location in database
         else:
             device_queue[device_id]["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_3"]) == 3:
-                calc_location(device_queue[device_id]["s_3"], device_id)
+            if len(device_queue[device_id]["s_3"]) >= 3:
+                if len(device_queue[device_id]["s_3"]) == 3:
+                    calc_location(device_queue[device_id]["s_3"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                 #thr.start()
-                # print(location)
-                device_queue[device_id]["S_1"] = []
-                device_queue[device_id]["S_2"] = []
+                print("3")
+                device_queue[device_id]["s_1"] = []
+                device_queue[device_id]["s_2"] = []
 
                 ## save location in data base
 
@@ -115,7 +118,7 @@ import csv
 print("Without threading")
 # blockPrint()
 start_time = time.time()
-with open('Collected_Data/stationary.csv') as csv_file:
+with open('Collected_Data/stationary_tag.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -24, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyro_x": row[7], "gyro_y": row[8], "gyro_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}

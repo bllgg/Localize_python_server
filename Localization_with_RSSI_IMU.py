@@ -58,6 +58,7 @@ def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
 def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     speed_x = speed[0] + dt * earth_acc[0]
     speed_y = speed[1] + dt * earth_acc[1]
+    print (earth_acc[0], earth_acc[1])
 
     # Prediction phase
     pos_x_bar = position[0] + dt * speed_x
@@ -118,7 +119,7 @@ def localization_with_rssi(json_data):
     earth_acc = []
 
     if device_id not in device_queue:
-        device_queue[device_id] = {"s_1":[], "s_2":[], "s_3":[], "location" :[], "pos" : [0.0, 0.0], "speed" : [0.0, 0.0], "var" : [0.0, 0.0], }
+        device_queue[device_id] = {"s_1":[], "s_2":[], "s_3":[], "location" :[], "pos" : [0.0, 0.0], "speed" : [0.0, 0.0], "var" : [0.8, 0.8], }
         if sequence_number % 3 == 0:
             device_queue[device_id]["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
         elif sequence_number % 3 == 1:
@@ -128,42 +129,44 @@ def localization_with_rssi(json_data):
     else:
         if sequence_number % 3 == 0:
             device_queue[device_id]["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_1"]) == 3:
-                calc_location(device_queue[device_id]["s_1"], device_id)
-                earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
-                device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+            if len(device_queue[device_id]["s_1"]) >= 3:
+                if len(device_queue[device_id]["s_1"]) == 3:
+                    calc_location(device_queue[device_id]["s_1"], device_id)
+                    earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+                    device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
                 #thr.start()
                 print("1")
-
-                device_queue[device_id]["S_2"] = []
-                device_queue[device_id]["S_3"] = []
+                device_queue[device_id]["s_2"] = []
+                device_queue[device_id]["s_3"] = []
                 
                 ##save location in data base
         elif sequence_number % 3 == 1:
             device_queue[device_id]["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_2"]) == 3:
-                calc_location(device_queue[device_id]["s_2"], device_id)
-                earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
-                device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+            if len(device_queue[device_id]["s_2"]) >= 3:
+                if len(device_queue[device_id]["s_2"]) == 3:
+                    calc_location(device_queue[device_id]["s_2"], device_id)
+                    earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+                    device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
                 #thr.start()
                 print("2")
-                device_queue[device_id]["S_1"] = []
-                device_queue[device_id]["S_3"] = []
+                device_queue[device_id]["s_1"] = []
+                device_queue[device_id]["s_3"] = []
                 
                 ##save location in database
         else:
             device_queue[device_id]["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-            if len(device_queue[device_id]["s_3"]) == 3:
-                calc_location(device_queue[device_id]["s_3"], device_id)
-                earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
-                device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+            if len(device_queue[device_id]["s_3"]) >= 3:
+                if len(device_queue[device_id]["s_3"]) == 3:
+                    calc_location(device_queue[device_id]["s_3"], device_id)
+                    earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+                    device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                 #thr.start()
                 print("3")
-                device_queue[device_id]["S_1"] = []
-                device_queue[device_id]["S_2"] = []
+                device_queue[device_id]["s_1"] = []
+                device_queue[device_id]["s_2"] = []
 
                 ## save location in data base
 
@@ -176,7 +179,7 @@ import csv
 print("Without threading")
 # blockPrint()
 start_time = time.time()
-with open('Collected_Data/stationary.csv') as csv_file:
+with open('Collected_Data/stationary_tag.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -24, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
