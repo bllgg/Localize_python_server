@@ -68,7 +68,7 @@ with open('test.csv') as csvfile:
 
         mag_ary = [round(float(i),3) for i in row[10:]]
         for j in range(10):
-            sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0] + 0.00246, gyr_ary[1] - 0.00185, gyr_ary[2] + 0.00285, mag_ary[0], mag_ary[1], mag_ary[2], dt)
+            sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0], gyr_ary[1], gyr_ary[2], mag_ary[0], mag_ary[1], mag_ary[2], dt)
         
         roll_ary.append(sensorfusion.roll)
         pitch_ary.append(sensorfusion.pitch)
@@ -81,9 +81,9 @@ with open('test.csv') as csvfile:
         acc_ary = np.array(acc_ary)
         earth_accels = R @ acc_ary
 
-        e_x_ary.append(round(earth_accels[0] + 0.0187,1))
-        e_y_ary.append(round(earth_accels[1] - 0.218,1))
-        e_z_ary.append(round(earth_accels[2],1))
+        e_x_ary.append(round(earth_accels[0], 2))
+        e_y_ary.append(round(earth_accels[1], 2))
+        e_z_ary.append(round(earth_accels[2], 2))
 
 # e_x_ary = detrend(e_x_ary)
 # e_y_ary = detrend(e_y_ary)
@@ -134,17 +134,17 @@ plt.xlabel("seq num")
 
 plt.subplot(334)
 plt.plot(seq_no, e_x_ary)
-plt.ylabel("earth's x_acc")
+plt.ylabel("earth's South")
 plt.xlabel("seq num")
 
 plt.subplot(335)
 plt.plot(seq_no, e_y_ary)
-plt.ylabel("earth's y_acc")
+plt.ylabel("earth's East")
 plt.xlabel("seq num")
 
 plt.subplot(336)
 plt.plot(seq_no, e_z_ary)
-plt.ylabel("earth's z_acc")
+plt.ylabel("earth's Down")
 plt.xlabel("seq num")
 
 plt.subplot(337)
@@ -166,31 +166,49 @@ plt.suptitle("IMU data")
 
 # plt.show()
 plt.figure()
+x_speed = cumtrapz(e_x_ary,dx=0.1)
+y_speed = cumtrapz(e_y_ary,dx=0.1)
+
+plt.subplot(121)
+plt.hist(x_speed, bins = 100)
+plt.ylabel("frequency")
+plt.xlabel("speed South")
+plt.subplot(122)
+plt.hist(y_speed, bins = 100)
+plt.ylabel("frequency")
+plt.xlabel("speed East")
+plt.suptitle("Earth reference speed histogram")
+
+plt.figure()
 x_pos = cumtrapz(cumtrapz(e_x_ary,dx=0.1),dx=0.1)
 y_pos = cumtrapz(cumtrapz(e_y_ary,dx=0.1),dx=0.1)
 
 plt.plot(seq_no[2:], y_pos)
-plt.suptitle("y Position")
+plt.suptitle("East Position")
 
 plt.figure()
 plt.plot(seq_no[2:], x_pos)
-plt.suptitle("x Position")
+plt.suptitle("South Position")
 
 plt.figure()
 x_v = cumtrapz(e_x_ary,dx=0.1)
 y_v = cumtrapz(e_y_ary,dx=0.1)
 
 plt.plot(seq_no[1:], y_v)
-plt.suptitle("y Speed")
+plt.suptitle("East Speed")
 
 plt.figure()
 plt.plot(seq_no[1:], x_v)
-plt.suptitle("x Speed")
+plt.suptitle("South Speed")
 # plt.subplot(111)
 
-print("mean x", mean(e_x_ary))
-print("mean y", mean(e_y_ary))
-print("mean z", mean(e_z_ary))
+print("mean s x", mean(p_x_ary))
+print("mean s y", mean(p_y_ary))
+print("mean s z", mean(p_z_ary))
+
+print("mean south", mean(e_x_ary))
+print("mean east", mean(e_y_ary))
+print("mean down", mean(e_z_ary))
 
 print("mean x gyr", mean(p_x_gyr))
 print("mean y gyr", mean(p_y_gyr))
@@ -199,8 +217,13 @@ print("mean z gyr", mean(p_z_gyr))
 plt.figure()
 plt.subplot(121)
 plt.hist(e_x_ary, bins = 100)
+plt.ylabel("frequency")
+plt.xlabel("e_r_acceleration South")
 plt.subplot(122)
 plt.hist(e_y_ary, bins = 100)
+plt.ylabel("frequency")
+plt.xlabel("e_r_acceleration East")
+plt.suptitle("Earth Reference acceleration histogram")
 
 plt.show()
 

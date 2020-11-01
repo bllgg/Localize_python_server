@@ -79,7 +79,7 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_1"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
                 #thr.start()
-                print("1")
+                # print("1")
                 device_queue[device_id]["s_2"] = []
                 device_queue[device_id]["s_3"] = []
                 
@@ -91,7 +91,7 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_2"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
                 #thr.start()
-                print("2")
+                # print("2")
                 device_queue[device_id]["s_1"] = []
                 device_queue[device_id]["s_3"] = []
                 
@@ -103,7 +103,7 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_3"], device_id)
                 #thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                 #thr.start()
-                print("3")
+                # print("3")
                 device_queue[device_id]["s_1"] = []
                 device_queue[device_id]["s_2"] = []
 

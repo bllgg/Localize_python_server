@@ -76,38 +76,38 @@ def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
 # filtering both RSSI and IMU data with Kalman filter
 def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     # Speed values update
-    speed_x = speed[0] + dt * earth_acc[0]
-    speed_y = speed[1] + dt * earth_acc[1]
+    speed_N = speed[1] + dt * earth_acc[0]
+    speed_E = speed[0] + dt * earth_acc[1]
     # print (earth_acc[0], earth_acc[1])
 
     ## Prediction phase of the kalman filter
     # position prediction using IMU data
-    pos_x_bar = position[0] + dt * speed_x
-    pos_y_bar = position[1] + dt * speed_y
+    pos_N_bar = position[1] + dt * speed_N
+    pos_E_bar = position[0] + dt * speed_E
 
     #variance prediction 
-    var_x_bar = variance[0] + Q
-    var_y_bar = variance[1] + Q
+    var_N_bar = variance[1] + Q
+    var_E_bar = variance[0] + Q
 
     ## Update phase
     # Kalman gain calculation
-    K_x = var_x_bar / (var_x_bar + R)
-    K_y = var_y_bar / (var_y_bar + R)
+    K_N = var_N_bar / (var_N_bar + R)
+    K_E = var_E_bar / (var_E_bar + R)
 
-    # Position value update according to the kalman gain
-    pos_x = pos_x_bar + K_x * (measured_pos[0] - pos_x_bar)
-    pos_y = pos_y_bar + K_y * (measured_pos[1] - pos_y_bar)
+    # Position value update according to the kalman gain. Measured positions should be swapped due to x, y swap
+    pos_N = pos_N_bar + K_N * (measured_pos[1] - pos_N_bar)
+    pos_E = pos_E_bar + K_E * (measured_pos[0] - pos_E_bar)
 
     # variance value update according to the kalman gain
-    var_x = var_x_bar * (1 - K_x)
-    var_y = var_y_bar * (1 - K_y)
+    var_N = var_N_bar * (1 - K_N)
+    var_E = var_E_bar * (1 - K_E)
 
     # Update the true speed value with the position difference
-    true_speed_x = (pos_x - position[0]) / dt
-    true_speed_y = (pos_y - position[1]) / dt
+    true_speed_N = (pos_N - position[1]) / dt
+    true_speed_E = (pos_E - position[0]) / dt
 
-    print ('position: [{},{}], speed: [{},{}], variance: [{},{}]'.format(pos_x, pos_y, true_speed_x, true_speed_y, var_x, var_y))
-    return [pos_x, pos_y], [true_speed_x, true_speed_y], [var_x, var_y]
+    print ('position: [{},{}], speed: [{},{}], variance: [{},{}]'.format(pos_E, pos_N, true_speed_E, true_speed_N, var_E, var_N))
+    return [pos_E, pos_N], [true_speed_N, true_speed_E], [var_N, var_E]
 
 
 
@@ -173,9 +173,12 @@ def localization_with_rssi(json_data):
                     
                     # Filter data with kalman filter
                     device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+
+                    print(device_queue[device_id]["pos"])
+
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
                 # thr.start()
-                # print("1")
+                
 
                 # Cleaning the other two data buckets
                 device_queue[device_id]["s_2"] = []
@@ -189,9 +192,11 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_2"], device_id)
                     earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                     device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+                    print(device_queue[device_id]["pos"])
+                
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
                 # thr.start()
-                # print("2")
+                
                 device_queue[device_id]["s_1"] = []
                 device_queue[device_id]["s_3"] = []
                 
@@ -203,9 +208,10 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_3"], device_id)
                     earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                     device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+                    print(device_queue[device_id]["pos"])
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                 # thr.start()
-                # print("3")
+                
                 device_queue[device_id]["s_1"] = []
                 device_queue[device_id]["s_2"] = []
 
