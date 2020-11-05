@@ -7,6 +7,7 @@ from scipy.integrate import cumtrapz
 import numpy as np
 from statistics import mean
 from scipy.signal import detrend
+from statistics import variance
 
 G_A = 9.81
 
@@ -85,36 +86,6 @@ with open('test.csv') as csvfile:
         e_y_ary.append(round(earth_accels[1], 2))
         e_z_ary.append(round(earth_accels[2], 2))
 
-# e_x_ary = detrend(e_x_ary)
-# e_y_ary = detrend(e_y_ary)
-
-# acc_ary = np.array(acc_ary)
-# for i in seq_no:
-#     for j in range(10):
-#         # newTime = time.time()
-#         #newTime - currTime
-#         #print(dt)
-#         # currTime = newTime
-
-#         sensorfusion.updateRollPitchYaw(float(acc_ary[i][0]), float(acc_ary[i][1]), float(acc_ary[i][2]), float(gyr_ary[i][0]), float(gyr_ary[i][1]), float(gyr_ary[i][2]), float(mag_ary[i][0]), float(mag_ary[i][1]), float(mag_ary[i][2]), dt)
-#         # sensorfusion.updateRollPitchYaw(acc_ary[i][0], acc_ary[i][1], acc_ary[i][2], float(gyr_ary[i][0]), float(gyr_ary[i][1]), float(gyr_ary[i][2]), float(mag_ary[i][0]), float(mag_ary[i][1]), float(mag_ary[i][2]), dt)
-
-#     # if print_count == 2:
-#     #     # print ("mad roll: {0} ; mad pitch : {1} ; mad yaw : {2}".format(sensorfusion.roll, sensorfusion.pitch, sensorfusion.yaw))
-#     #     print_count = 0
-
-#     roll_ary.append(sensorfusion.roll)
-#     pitch_ary.append(sensorfusion.pitch)
-#     yaw_ary.append(sensorfusion.yaw)
-#     quatarian = sensorfusion.q
-#     R = sensorfusion.getRotationMat(quatarian)
-#     i_R = np.linalg.inv(np.array(R))
-#     print(i_R)
-#     earth_accels = i_R @ acc_ary
-#     # print_count = print_count + 1
-#     # time.sleep(0.01)
-
-# print(roll_ary)
 
 plt.figure()
 plt.subplot(331)
