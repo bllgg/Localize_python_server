@@ -47,20 +47,27 @@ def get_coords_receiver(receivers_MAC):
     x = 0
     y = 0
     
-    # ESP 2
-    if receivers_MAC == "24:6F:28:A9:83:C8":
-        y = 8.31
-        x = 5.97
-    
     # ESP 1
     if receivers_MAC == "24:6F:28:A9:64:C8":
-        y = 5.85
-        x = -0.02
+        # y = 5.85
+        # x = -0.02
+        x = 1.7
+        y = 5.6
+    
+    # ESP 2
+    if receivers_MAC == "24:6F:28:A9:83:C8":
+        # y = 8.31
+        # x = 5.97
+        x = 8.14
+        y = 6.2
     
     # ESP 3
     if receivers_MAC == "24:6F:28:A9:87:40":
-        y = 0.82
-        x = 2.68
+        # y = 0.82
+        # x = 2.68
+        x = 2.8
+        y = 0
+
     return x,y
 
 def localization_with_rssi(json_data):
@@ -71,15 +78,15 @@ def localization_with_rssi(json_data):
     receiver_x, receiver_y = get_coords_receiver(receivers_MAC) ## collect data from database
     rssi = json_data["RSSI"]
     tx_pow = json_data["tx_pow"]
-    distance = rssi_dis.rssi_to_dist(tx_pow, rssi, 1.6)
-    if receivers_MAC == "24:6F:28:A9:64:C8":
-        dist_esp1.append(distance)
+    distance = rssi_dis.rssi_to_dist(tx_pow, rssi, 1.8)
+    # if receivers_MAC == "24:6F:28:A9:64:C8":
+    #     dist_esp1.append(distance)
 
-    if receivers_MAC == "24:6F:28:A9:83:C8":
-        dist_esp2.append(distance)
+    # if receivers_MAC == "24:6F:28:A9:83:C8":
+    #     dist_esp2.append(distance)
 
-    if receivers_MAC == "24:6F:28:A9:87:40":
-        dist_esp3.append(distance)
+    # if receivers_MAC == "24:6F:28:A9:87:40":
+    #     dist_esp3.append(distance)
 
     if device_id not in device_queue:
         device_queue[device_id] = {"s_1":[], "s_2":[], "s_3":[], "location" :[]}
@@ -137,10 +144,10 @@ import csv
 print("Without threading")
 # blockPrint()
 start_time = time.time()
-with open('walk_a-b.csv') as csv_file:
+with open('test_3.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
-        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -70, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyro_x": row[7], "gyro_y": row[8], "gyro_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
+        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -75, "RSSI": int(row[3]), "MAC": row[1]}#, "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyro_x": row[7], "gyro_y": row[8], "gyro_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
         j_d = json.dumps(json_data)
         #thr = Thread(target=localization_with_rssi, args=(j_d,))
         #thr.start()
@@ -149,6 +156,6 @@ stop_time = time.time()
 
 # enablePrint()
 print("--- %s seconds ---" % (time.time() - start_time))
-print("ESP 1 :",st.mean(dist_esp1))
-print("ESP 2 :",st.mean(dist_esp2))
-print("ESP 3 :",st.mean(dist_esp3))
+# print("ESP 1 :",st.mean(dist_esp1))
+# print("ESP 2 :",st.mean(dist_esp2))
+# print("ESP 3 :",st.mean(dist_esp3))

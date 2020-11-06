@@ -8,12 +8,13 @@ import numpy as np
 from statistics import mean
 from scipy.signal import detrend
 from statistics import variance
+from statistics import stdev
 
 G_A = 9.81
 
 pi = math.pi
 dt = 0.1
-sensorfusion = madgwick.Madgwick(0.5)
+sensorfusion = madgwick.Madgwick(0.0)
 
 seq_no=[]
 a=0
@@ -42,12 +43,22 @@ new_arr = [0, 0, 0]
 mean_eax = 0
 mean_eay = 0
 
-with open('test.csv') as csvfile:
+rssi_vals = []
+mag_x_vals = []
+mag_y_vals = []
+mag_z_vals = []
+
+with open('test_1.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     for row in readCSV:
         seq_no.append(a)
         a+=1
         # acc_ary.append(row[4:7])
+        rssi_vals.append(int(row[3]))
+        mag_x_vals.append(int(float(row[10])))
+        mag_y_vals.append(int(float(row[11])))
+        mag_z_vals.append(int(float(row[12])))
+
         acc_ary = [round(float(i),3)*G_A for i in row[4:7]]
         new_arr = [a + b for a, b in zip(acc_ary, prev_ar)]
         prev_ar = [number / 2 for number in new_arr]
@@ -174,16 +185,30 @@ plt.suptitle("South Speed")
 # plt.subplot(111)
 
 print("mean s x", mean(p_x_ary))
+print("stddev s x", stdev(p_x_ary))
 print("mean s y", mean(p_y_ary))
+print("stddev s y", stdev(p_y_ary))
 print("mean s z", mean(p_z_ary))
+print("stddev s z", stdev(p_z_ary))
 
 print("mean south", mean(e_x_ary))
 print("mean east", mean(e_y_ary))
 print("mean down", mean(e_z_ary))
 
 print("mean x gyr", mean(p_x_gyr))
+print("stddev x gyr", stdev(p_x_gyr))
 print("mean y gyr", mean(p_y_gyr))
+print("stddev y gyr", stdev(p_y_gyr))
 print("mean z gyr", mean(p_z_gyr))
+print("stddev z gyr", stdev(p_z_gyr))
+
+# print(rssi_vals)
+print("mean of RSSI", mean(rssi_vals))
+print("stddev of RSSI", stdev(rssi_vals))
+
+print("stddev x mag", stdev(mag_x_vals))
+print("stddev y mag", stdev(mag_y_vals))
+print("stddev z mag", stdev(mag_z_vals))
 
 plt.figure()
 plt.subplot(121)
@@ -197,4 +222,5 @@ plt.xlabel("e_r_acceleration East")
 plt.suptitle("Earth Reference acceleration histogram")
 
 plt.show()
+
 
