@@ -59,8 +59,8 @@ def mouseCallback(event, x, y, flags,null):
     
 
 
-WIDTH=814
-HEIGHT=780
+WIDTH=815
+HEIGHT=781
 # WINDOW_NAME="Particle Filter"
 WINDOW_NAME = "Indoor Map"
 
@@ -132,7 +132,8 @@ y_range=np.array([0,HEIGHT])
 N=400
 
 #landmarks=np.array([ [144,73], [410,13], [336,175], [718,159], [178,484], [665,464] ])
-landmarks=np.array([ [100,500], [400,200], [300,150], [700,350], [150,75], [600,300] ])
+landmarks = np.array([ [170, 780 - 560], [814, 780 - 620], [280, 780 - 0] ])
+walls = np.array([[[0, 780 - 670], [364, 780 - 670]], [[0, 780 - 560], [364, 780 - 560]], [[0, 780 - 0], [0, 780 - 670]], [[0, 780 - 0], [454, 780 - 0]], [[454, 780 - 0], [454, 780 - 130]], [[454, 780 - 130], [814, 780 - 130]], [[814, 780 - 130], [814, 780 - 780]], [[814, 780 - 780],[364, 780 - 780]]])
 NL = len(landmarks)
 particles=create_uniform_particles(x_range, y_range, N)
 
@@ -153,19 +154,30 @@ previous_x=-1
 previous_y=-1
 DELAY_MSEC=50
 
-X_coord = [2*x+4 for x in range(390)]
-Y_coord = [y+4 for y in range(390)]
-i = 0
-while(1):
+X_coord = [(1 + (5.14/100)*x) * 100 for x in range(100)]
+Y_coord = [781 - ((1 + (2.5/100)*y) * 100) for y in range(100)]
 
-    cv2.imshow(WINDOW_NAME,img)
+j = 0
+# cv2.waitKey(0) 
+while(j < 100):
+    
+    imS = cv2.resize(img, (651, 624)) 
+    cv2.imshow(WINDOW_NAME,imS)
     img = np.zeros((HEIGHT,WIDTH,3), np.uint8)
-    drawLines(img, trajectory,   0,   255, 0)
-    drawCross(img, center, r=255, g=0, b=0)
+    # if (j == 2):
+    #     cv2.waitKey(0) 
+    # drawing perimeters
+    for wall in walls:
+        drawLines(img, wall, 255, 0, 255)
     
     #landmarks
     for landmark in landmarks:
-        cv2.circle(img,tuple(landmark),10,(255,0,0),-1)
+        cv2.circle(img,tuple(landmark),20,(255,0,0),-1)
+
+    drawLines(img, trajectory,   0,   255, 0)
+    drawCross(img, center, r=255, g=0, b=0)
+    
+    
     
     #draw_particles:
     for particle in particles:
@@ -174,10 +186,9 @@ while(1):
     if cv2.waitKey(DELAY_MSEC) & 0xFF == 27:
         break
 
-    mouseCallback(0, X_coord[i] + random.randint(-4, 5), Y_coord[i] + random.randint(-4, 5), 0, 0)
-    time.sleep(0.01)
-    i+=1
-    i%=389
+    mouseCallback(0, int(X_coord[j]) + random.randint(-1, 2), int(Y_coord[j]) + random.randint(-1, 2), 0, 0)
+    time.sleep(0.1)
+    j +=1
     #cv2.circle(img,(10,10),10,(255,0,0),-1)
     #cv2.circle(img,(10,30),3,(255,255,255),-1)
     #cv2.putText(img,"Landmarks",(30,20),1,1.0,(255,0,0))
@@ -187,5 +198,5 @@ while(1):
     #drawLines(img, np.array([[10,55],[25,55]]), 0, 255, 0)
     
 
-
+cv2.waitKey(0)
 cv2.destroyAllWindows()

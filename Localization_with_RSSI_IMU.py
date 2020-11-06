@@ -14,7 +14,7 @@ pi = math.pi
 dt = 0.1 # Sampling rate = 0.1 s
 Q = 0.5 # defined by experimental values of position prediction with acceleration
 R = 0.5 # defined by experimental values of position prediction with rssi position measuring
-RSSI_CONST = 9.25 # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
+RSSI_CONST = 1.8 # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
 
 default_position = [0.0, 0.0] # Entrance of the indoor area. This should be entered by the building authority
 default_variance = [1.8, 1.8] # Variance of the position by the IMU prediction
@@ -52,7 +52,7 @@ def calc_location(details, device_id):
     
     # Adding calculated location in to the corresponding location of the device queue
     device_queue[device_id]["location"] = [t.loc.x, t.loc.y]
-    print (t.loc)
+    # print (t.loc)
     return [t.loc.x, t.loc.y]
 
 def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
@@ -76,38 +76,38 @@ def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
 # filtering both RSSI and IMU data with Kalman filter
 def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     # Speed values update
-    speed_N = speed[1] + dt * earth_acc[0]
-    speed_E = speed[0] + dt * earth_acc[1]
+    speed_S = speed[0] + dt * earth_acc[0]
+    speed_E = speed[1] + dt * earth_acc[1]
     # print (earth_acc[0], earth_acc[1])
 
     ## Prediction phase of the kalman filter
     # position prediction using IMU data
-    pos_N_bar = position[1] + dt * speed_N
-    pos_E_bar = position[0] + dt * speed_E
+    pos_S_bar = position[0] + dt * speed_S
+    pos_E_bar = position[1] + dt * speed_E
 
     #variance prediction 
-    var_N_bar = variance[1] + Q
-    var_E_bar = variance[0] + Q
+    var_S_bar = variance[0] + Q
+    var_E_bar = variance[1] + Q
 
     ## Update phase
     # Kalman gain calculation
-    K_N = var_N_bar / (var_N_bar + R)
+    K_S = var_S_bar / (var_S_bar + R)
     K_E = var_E_bar / (var_E_bar + R)
 
-    # Position value update according to the kalman gain. Measured positions should be swapped due to x, y swap
-    pos_N = pos_N_bar + K_N * (measured_pos[1] - pos_N_bar)
-    pos_E = pos_E_bar + K_E * (measured_pos[0] - pos_E_bar)
+    # Position value update according to the kalman gain.
+    pos_S = pos_S_bar + K_S * (measured_pos[0] - pos_S_bar)
+    pos_E = pos_E_bar + K_E * (measured_pos[1] - pos_E_bar)
 
     # variance value update according to the kalman gain
-    var_N = var_N_bar * (1 - K_N)
+    var_S = var_S_bar * (1 - K_S)
     var_E = var_E_bar * (1 - K_E)
 
     # Update the true speed value with the position difference
-    true_speed_N = (pos_N - position[1]) / dt
-    true_speed_E = (pos_E - position[0]) / dt
+    true_speed_S = (pos_S - position[0]) / dt
+    true_speed_E = (pos_E - position[1]) / dt
 
-    print ('position: [{},{}], speed: [{},{}], variance: [{},{}]'.format(pos_E, pos_N, true_speed_E, true_speed_N, var_E, var_N))
-    return [pos_E, pos_N], [true_speed_N, true_speed_E], [var_N, var_E]
+    # print ('position: [{},{}], speed: [{},{}], variance: [{},{}]'.format(pos_E, pos_N, true_speed_E, true_speed_N, var_E, var_N))
+    return [pos_S, pos_E], [true_speed_S, true_speed_E], [var_S, var_E]
 
 
 
@@ -118,15 +118,21 @@ temporary function. the coordinates should received from a data base
 def get_coords_receiver(receivers_MAC):
     x = 0
     y = 0
-    if receivers_MAC == "24:6F:28:A9:83:C8":
-        y = 0
-        x = 5.1
+
+    # ESP 1
     if receivers_MAC == "24:6F:28:A9:64:C8":
-        y = 0
-        x = 0
+        x = 1.7
+        y = 5.6
+
+    # ESP 2
+    if receivers_MAC == "24:6F:28:A9:83:C8":
+        x = 8.14
+        y = 6.2
+    
+    # ESP 3
     if receivers_MAC == "24:6F:28:A9:87:40":
-        y = 4.53
-        x = 2.34
+        x = 2.8
+        y = 0.0
     return x,y
 
 # Core localization algorithm
@@ -225,10 +231,10 @@ import csv
 print("Without threading")
 
 start_time = time.time()
-with open('Collected_Data/stationary_tag.csv') as csv_file:
+with open('test_3.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
-        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -24, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
+        json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -75, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
         j_d = json.dumps(json_data)
         #thr = Thread(target=localization_with_rssi, args=(j_d,))
         #thr.start()

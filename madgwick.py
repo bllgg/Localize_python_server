@@ -11,7 +11,7 @@ class Madgwick:
 	refer to examples of the git repo
 
 	"""
-	def __init__(self, b = 0.1):
+	def __init__(self, b = 0.0):
 		"""
 		Initialises all the variables. 
 
