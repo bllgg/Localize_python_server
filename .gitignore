@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 Collected_Data
+*.csv
+*.zip

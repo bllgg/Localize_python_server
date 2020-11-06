@@ -3,6 +3,7 @@ import time
 import json
 import pandas as pd
 import csv
+k = 0
 
 def on_connect(client, userdata, flags, rc):
  
@@ -19,26 +20,28 @@ def on_connect(client, userdata, flags, rc):
  
 def on_message(client, userdata, message):
     msg = message.payload.decode()
-    print ("Message received: "  + msg)
+    #print ("Msg received")#, k)
+    print (msg)
+    # k+=1
     value = json.loads(message.payload.decode())
     # print(type(value))
-    with open('mycsvfile.csv', 'a') as f:  # Just use 'w' mode in 3.x
+    with open('RSSI_exp/8m.csv', 'a', newline='') as f:  # Just use 'w' mode in 3.x
         w = csv.writer(f)
         w.writerow(value.values())
 
  
 Connected = False   #global variable for the state of the connection
-'''
+
 broker_address= "m11.cloudmqtt.com"  #Broker address
 port = 17595                         #Broker port
 user = "twhkvnkt"
 password = "0qLBb25EOa3T"            #Connection password
-'''
 
-broker_address= "192.168.8.102"  #Broker address
-port = 1883                         #Broker port
-user = "mqtt_server"
-password = "1234"            #Connection password
+
+# broker_address= "192.168.43.125"  #Broker address
+# port = 1883                         #Broker port
+# user = "mob"
+# password = "asdfghjk"            #Connection password
  
 client = mqttClient.Client("Python_sub")               #create new instance
 client.username_pw_set(user, password=password)    #set username and password
@@ -53,8 +56,11 @@ client.loop_start()        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
  
-client.subscribe("/topic/qos1",2)
- 
+# client.subscribe("/topic/esp1",2)
+# client.subscribe("/topic/esp2",2)
+client.subscribe("/topic/esp3",2)
+# client.subscribe("/topic/qos1",2)
+
 try:
     while True:
         time.sleep(1)
