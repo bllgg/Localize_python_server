@@ -22,9 +22,9 @@ def drawCross(img, center, r, g, b):
     ctry = center[0,1]
     cv2.line(img, (ctrx - d, ctry - d), (ctrx + d, ctry + d), color, t, LINE_AA)
     cv2.line(img, (ctrx + d, ctry - d), (ctrx - d, ctry + d), color, t, LINE_AA)
-    
 
-def mouseCallback(event, x, y, flags,null):
+
+def partical_filter(x, y):
     global center
     global trajectory
     global previous_x
@@ -47,7 +47,7 @@ def mouseCallback(event, x, y, flags,null):
         
         std=np.array([2,4])
         u = np.array([heading,distance])
-        predict(particles, u, std, dt=1.)
+        predict(particles, u, std, dt=1)
         zs = (np.linalg.norm(landmarks - center, axis=1) + (np.random.randn(NL) * sensor_std_err))
         update(particles, weights, z=zs, R=50, landmarks=landmarks)
         
@@ -80,7 +80,8 @@ def create_uniform_particles(x_range, y_range, N):
 
 def predict(particles, u, std, dt=1.):
     N = len(particles)
-    dist = (u[1] * dt) + (np.random.randn(N) * std[1])
+    # dist = (u[1] * dt) + (np.random.randn(N) * std[1])
+    dist = (u[1]) + (np.random.randn(N) * std[1])
     particles[:, 0] += np.cos(u[0]) * dist
     particles[:, 1] += np.sin(u[0]) * dist
    
@@ -135,7 +136,7 @@ N=400
 landmarks = np.array([ [170, 780 - 560], [814, 780 - 620], [280, 780 - 0] ])
 walls = np.array([[[0, 780 - 670], [364, 780 - 670]], [[0, 780 - 560], [364, 780 - 560]], [[0, 780 - 0], [0, 780 - 670]], [[0, 780 - 0], [454, 780 - 0]], [[454, 780 - 0], [454, 780 - 130]], [[454, 780 - 130], [814, 780 - 130]], [[814, 780 - 130], [814, 780 - 780]], [[814, 780 - 780],[364, 780 - 780]]])
 NL = len(landmarks)
-particles=create_uniform_particles(x_range, y_range, N)
+particles = create_uniform_particles(x_range, y_range, N)
 
 
 weights = np.array([1.0]*N)
@@ -146,16 +147,19 @@ img = np.zeros((HEIGHT,WIDTH,3), np.uint8)
 cv2.namedWindow(WINDOW_NAME)
 # cv2.setMouseCallback(WINDOW_NAME,mouseCallback)
 
-center=np.array([[-10,-10]])
+center = np.array([[-10,-10]])
 
-trajectory=np.zeros(shape=(0,2))
-robot_pos=np.zeros(shape=(0,2))
-previous_x=-1
-previous_y=-1
-DELAY_MSEC=50
+trajectory = np.zeros(shape=(0,2))
+robot_pos = np.zeros(shape=(0,2))
+previous_x = -1
+previous_y = -1
+DELAY_MSEC = 50
 
-X_coord = [(1 + (5.14/100)*x) * 100 for x in range(100)]
-Y_coord = [781 - ((1 + (2.5/100)*y) * 100) for y in range(100)]
+# X_coord = [(1 + (5.14/100)*x) * 100 for x in range(100)]
+# Y_coord = [781 - ((1 + (2.5/100)*y) * 100) for y in range(100)]
+
+X_coord = [100 for x in range(100)]
+Y_coord = [781 - 100 for y in range(100)]
 
 j = 0
 # cv2.waitKey(0) 
@@ -176,17 +180,23 @@ while(j < 100):
 
     drawLines(img, trajectory,   0,   255, 0)
     drawCross(img, center, r=255, g=0, b=0)
+    # print(center[0][0])
     
-    
-    
-    #draw_particles:
+    # draw_particles:
     for particle in particles:
         cv2.circle(img,tuple((int(particle[0]),int(particle[1]))),1,(255,255,255),-1)
 
     if cv2.waitKey(DELAY_MSEC) & 0xFF == 27:
         break
 
-    mouseCallback(0, int(X_coord[j]) + random.randint(-1, 2), int(Y_coord[j]) + random.randint(-1, 2), 0, 0)
+    partical_filter(int(X_coord[j]) + random.randint(-10, 11), int(Y_coord[j]) + random.randint(-10, 11))
+    
+    r_pos_x = (sum(particles[:,0])) / N
+    r_pos_y = (sum(particles[:,1])) / N
+
+    real_pos = np.array([[int(r_pos_x), int(r_pos_y)]])
+    # print(real_pos)
+    drawCross(img, real_pos, r=255, g=0, b=255)
     time.sleep(0.1)
     j +=1
     #cv2.circle(img,(10,10),10,(255,0,0),-1)
