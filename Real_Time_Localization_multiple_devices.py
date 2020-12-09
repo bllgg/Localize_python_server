@@ -14,8 +14,18 @@ import time
 import sys
 import os
 import madgwick
+import mysql.connector
 
 device_queue = {}
+
+ils_db = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="Localization"
+)
+
+ils_cursor = ils_db.cursor(buffered=True)
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -50,7 +60,7 @@ def on_message(client, userdata, message):
     device_id = json_data["dev_id"]
 
     if device_id not in device_queue:
-        device_queue[device_id] = device.Device(device_id)
+        device_queue[device_id] = device.Device(device_id, ils_cursor, ils_db)
         device_queue[device_id].localization_with_rssi(msg)
 
     else:

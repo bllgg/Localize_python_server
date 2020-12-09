@@ -8,6 +8,7 @@ import time
 import sys
 import os
 import madgwick
+import mysql.connector
 
 
 class Device:
@@ -25,6 +26,8 @@ class Device:
     device_data = {}
     # creating the madgwick object for access IMU processing functions.
     sensorfusion = None
+    building_id = None
+    esp_devices = {}
 
     # Disable printings
     def blockPrint(self):
@@ -34,9 +37,11 @@ class Device:
     def enablePrint(self):
         sys.stdout = sys.__stdout__
 
-    def __init__(self, device_id):
+    def __init__(self, device_id, ils_cursor, ils_db):
         self.sensorfusion = madgwick.Madgwick(0.5)
         self.device_name = device_id
+        self.ils_cursor = ils_cursor
+        self.ils_db = ils_db
         self.device_data = {"s_1": [], "s_2": [], "s_3": [], "location": [], "pos": self.default_position, "speed": [0.0, 0.0], "var": self.default_variance}
 
     # Claculate location by the RSSI data
@@ -120,20 +125,32 @@ class Device:
         x = 0
         y = 0
 
-        # ESP 1
-        if receivers_MAC == "24:6F:28:A9:64:C8":
-            x = 1.7
-            y = 5.6
+        if (receivers_MAC not in self.esp_devices):
+            ils_cursor.execute("SELECT x_position, y_position, building_id FROM ESP_device where esp_device = \"%s\"" %(receivers_MAC))
+            coords = ils_cursor.fetchone()
+            x = coords[0]
+            y = coords[1]
+            self.building_id = coords[2]
+            self.esp_devices[receivers_MAC] = [x, y, self.building_id]
+        else:
+            x = self.esp_devices[receivers_MAC][0]
+            y = self.esp_devices[receivers_MAC][1]
 
-        # ESP 2
-        if receivers_MAC == "24:6F:28:A9:83:C8":
-            x = 8.14
-            y = 6.2
 
-        # ESP 3
-        if receivers_MAC == "24:6F:28:A9:87:40":
-            x = 2.8
-            y = 0.0
+        # # ESP 1
+        # if receivers_MAC == "24:6F:28:A9:64:C8":
+        #     x = 1.7
+        #     y = 5.6
+
+        # # ESP 2
+        # if receivers_MAC == "24:6F:28:A9:83:C8":
+        #     x = 8.14
+        #     y = 6.2
+
+        # # ESP 3
+        # if receivers_MAC == "24:6F:28:A9:87:40":
+        #     x = 2.8
+        #     y = 0.0
         return x, y
 
     def localization_with_rssi(self, json_data, first_signal):
@@ -189,6 +206,13 @@ class Device:
                     self.device_data["s_3"] = []
 
                     ##save location in data base
+
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    ils_cursor.execute(sql, val)
+
+                    ils_db.commit()
+
             elif sequence_number % 3 == 1:
                 self.device_data["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
                 if len(self.device_data["s_2"]) >= 3:
@@ -205,6 +229,13 @@ class Device:
                     self.device_data["s_3"] = []
 
                     ##save location in database
+
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    ils_cursor.execute(sql, val)
+
+                    ils_db.commit()
+
             else:
                 self.device_data["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
                 if len(self.device_data["s_3"]) >= 3:
@@ -219,4 +250,10 @@ class Device:
                     self.device_data["s_1"] = []
                     self.device_data["s_2"] = []
 
-                    ## save location in data base
+                    ## save location in data 
+                    
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    ils_cursor.execute(sql, val)
+
+                    ils_db.commit()
