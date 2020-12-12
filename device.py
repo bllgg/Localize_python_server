@@ -184,7 +184,7 @@ class Device:
             if sequence_number % 3 == 0:
                 # Append the data to the device que
                 self.device_data["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
-                if len(self.device_queue[device_id]["s_1"]) >= 3:
+                if len(self.device_data["s_1"]) >= 3:
                     # Do the trilateration
                     if len(self.device_data["s_1"]) == 3:
                         # calculate the location with the RSSI values

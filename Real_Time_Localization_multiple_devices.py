@@ -61,10 +61,10 @@ def on_message(client, userdata, message):
 
     if device_id not in device_queue:
         device_queue[device_id] = device.Device(device_id, ils_cursor, ils_db)
-        device_queue[device_id].localization_with_rssi(msg)
+        device_queue[device_id].localization_with_rssi(msg,True)
 
     else:
-        device_queue[device_id].localization_with_rssi(msg)
+        device_queue[device_id].localization_with_rssi(msg,False)
 
 
 Connected = False  # global variable for the state of the connection
