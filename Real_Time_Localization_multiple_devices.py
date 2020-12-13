@@ -57,7 +57,8 @@ def on_message(client, userdata, message):
     # value = json.loads(message.payload.decode())
     # print(type(value))
     json_data = json.loads(msg)
-    device_id = json_data["dev_id"]
+    device_id = json_data["snsr_id"]
+    # print(device_id)
 
     if device_id not in device_queue:
         device_queue[device_id] = device.Device(device_id, ils_cursor, ils_db)
@@ -69,10 +70,15 @@ def on_message(client, userdata, message):
 
 Connected = False  # global variable for the state of the connection
 
-broker_address = "m11.cloudmqtt.com"  # Broker address
-port = 17595  # Broker port
+# broker_address = "m11.cloudmqtt.com"  # Broker address
+# port = 17595  # Broker port
+# user = "twhkvnkt"
+# password = "0qLBb25EOa3T"  # Connection password
+
+broker_address= "192.168.9.230"  #Broker address
+port = 1883                         #Broker port
 user = "twhkvnkt"
-password = "0qLBb25EOa3T"  # Connection password
+password = "0qLBb25EOa3T"            #Connection password
 
 # broker_address= "192.168.43.125"  #Broker address
 # port = 1883                         #Broker port
@@ -91,9 +97,9 @@ client.loop_start()  # start the loop
 while Connected != True:  # Wait for connection
     time.sleep(0.1)
 
-# client.subscribe("/topic/esp1",2)
-# client.subscribe("/topic/esp2",2)
-client.subscribe("/topic/esp3", 2)
+client.subscribe("/topic/esp1",0)
+client.subscribe("/topic/esp2",0)
+client.subscribe("/topic/esp3",0)
 # client.subscribe("/topic/qos1",2)
 
 try:

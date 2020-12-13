@@ -37,8 +37,9 @@ class Device:
     def enablePrint(self):
         sys.stdout = sys.__stdout__
 
+    # def __init__(self, device_id): 
     def __init__(self, device_id, ils_cursor, ils_db):
-        self.sensorfusion = madgwick.Madgwick(0.5)
+        self.sensorfusion = madgwick.Madgwick(0.0)
         self.device_name = device_id
         self.ils_cursor = ils_cursor
         self.ils_db = ils_db
@@ -59,7 +60,7 @@ class Device:
             t.add_measure(i[1], i[0])
 
         P.solve()
-        self.enablePrint(self)
+        self.enablePrint()
 
         # Adding calculated location in to the corresponding location of the device queue
         self.device_data["location"] = [t.loc.x, t.loc.y]
@@ -71,7 +72,7 @@ class Device:
         # this is littlebit tricky. We have to calculate it 10 times. Othervise it will be wrong
         for j in range(10):
             self.sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0], gyr_ary[1], gyr_ary[2], mag_ary[0], mag_ary[1], mag_ary[2], self.dt)
-        self.sensorfusion.updateRollPitchYaw()
+        # self.sensorfusion.updateRollPitchYaw()
         # Get the quatarnian value of calculated orientation
         quatarian = self.sensorfusion.q
 
@@ -126,8 +127,11 @@ class Device:
         y = 0
 
         if (receivers_MAC not in self.esp_devices):
-            ils_cursor.execute("SELECT x_position, y_position, building_id FROM ESP_device where esp_device = \"%s\"" %(receivers_MAC))
-            coords = ils_cursor.fetchone()
+            # print(receivers_MAC)
+            self.ils_cursor.execute("SELECT x_position, y_position, building_id FROM ESP_device where esp_device = \"%s\"" %(receivers_MAC))
+            # print('gfd')
+            coords = self.ils_cursor.fetchone()
+            # print(coords)
             x = coords[0]
             y = coords[1]
             self.building_id = coords[2]
@@ -138,30 +142,33 @@ class Device:
 
 
         # # ESP 1
-        # if receivers_MAC == "24:6F:28:A9:64:C8":
+        # if receivers_MAC == "7C:9E:BD:F6:32:D8":
         #     x = 1.7
         #     y = 5.6
 
         # # ESP 2
-        # if receivers_MAC == "24:6F:28:A9:83:C8":
+        # if receivers_MAC == "24:6F:28:A9:64:C8":
         #     x = 8.14
         #     y = 6.2
 
         # # ESP 3
-        # if receivers_MAC == "24:6F:28:A9:87:40":
+        # if receivers_MAC == "B8:F0:09:CD:35:10":
         #     x = 2.8
         #     y = 0.0
         return x, y
 
     def localization_with_rssi(self, json_data, first_signal):
         # JSON data handling
+        # print('jj')
         json_data = json.loads(json_data)
-        device_id = json_data["dev_id"]
-        sequence_number = json_data["seq_num"]
-        receivers_MAC = json_data["MAC"]
+        device_id = json_data["snsr_id"]
+        sequence_number = json_data["seq_no"]
+        receivers_MAC = json_data["mac"]
+        # print('ff')
         receiver_x, receiver_y = self.get_coords_receiver(receivers_MAC)  ## collect data from database
-        rssi = json_data["RSSI"]
-        tx_pow = json_data["tx_pow"]
+        rssi = json_data["rssi"]
+        # print(rssi)
+        tx_pow = -40
 
         # distance calculation with RSSI value
         distance = rssi_dis.rssi_to_dist(tx_pow, rssi, self.RSSI_CONST)
@@ -205,13 +212,13 @@ class Device:
                     self.device_data["s_2"] = []
                     self.device_data["s_3"] = []
 
-                    ##save location in data base
+                    #save location in data base
 
                     sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
                     val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
-                    ils_cursor.execute(sql, val)
+                    self.ils_cursor.execute(sql, val)
 
-                    ils_db.commit()
+                    self.ils_db.commit()
 
             elif sequence_number % 3 == 1:
                 self.device_data["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
@@ -228,13 +235,13 @@ class Device:
                     self.device_data["s_1"] = []
                     self.device_data["s_3"] = []
 
-                    ##save location in database
+                    #save location in database
 
                     sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
                     val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
-                    ils_cursor.execute(sql, val)
+                    self.ils_cursor.execute(sql, val)
 
-                    ils_db.commit()
+                    self.ils_db.commit()
 
             else:
                 self.device_data["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
@@ -250,10 +257,37 @@ class Device:
                     self.device_data["s_1"] = []
                     self.device_data["s_2"] = []
 
-                    ## save location in data 
+                    # save location in data 
                     
                     sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
                     val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
-                    ils_cursor.execute(sql, val)
+                    self.ils_cursor.execute(sql, val)
 
-                    ils_db.commit()
+                    self.ils_db.commit()
+
+# import csv
+# device_queue = {}
+# with open('data.csv') as csv_file:
+#     csv_reader = csv.reader(csv_file, delimiter=',')
+#     for row in csv_reader:
+#         json_data = {"seq_no": int(row[0]), "snsr_id": row[2], "tx_pow": -40, "rssi": int(row[3]), "mac": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
+#         j_d = json.dumps(json_data)
+#         print(type(j_d))
+#         # print(j_d)
+#         # j_data = json.load(j_d)
+#         # print(type(j_data))
+#         #thr = Thread(target=localization_with_rssi, args=(j_d,))
+#         #thr.start()
+#         # localization_with_rssi(j_d)
+#         # value = json.loads(message.payload.decode())
+#         # print(type(value))
+#         device_id = json_data["snsr_id"]
+
+#         if device_id not in device_queue:
+#             device_queue[device_id] = Device(device_id)
+#             device_queue[device_id].localization_with_rssi(j_d, True)
+
+#         else:
+#             device_queue[device_id].localization_with_rssi(j_d, False)
+
+#         print(device_queue)
