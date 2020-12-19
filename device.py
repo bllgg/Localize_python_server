@@ -207,8 +207,8 @@ class Device:
 
                     ##save location in data base
 
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id), str((self.device_data["var"][0]**2 + self.device_data["var"][1]**2)**0.5))
                     ils_cursor.execute(sql, val)
 
                     ils_db.commit()
@@ -230,8 +230,8 @@ class Device:
 
                     ##save location in database
 
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id), str((self.device_data["var"][0]**2 + self.device_data["var"][1]**2)**0.5))
                     ils_cursor.execute(sql, val)
 
                     ils_db.commit()
@@ -252,8 +252,8 @@ class Device:
 
                     ## save location in data 
                     
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id), str((self.device_data["var"][0]**2 + self.device_data["var"][1]**2)**0.5))
                     ils_cursor.execute(sql, val)
 
                     ils_db.commit()
