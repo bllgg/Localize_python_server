@@ -15,12 +15,13 @@ class Device:
     G_A = 9.81  # Gravitational acceleration
     pi = math.pi
     dt = 0.1  # Sampling rate = 0.1 s
-    Q = 0.5  # defined by experimental values of position prediction with acceleration
-    R = 0.5  # defined by experimental values of position prediction with rssi position measuring
-    RSSI_CONST = 1.8  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
+    Q = 4.5  # defined by experimental values of position prediction with acceleration
+    R = 4.5  # defined by experimental values of position prediction with rssi position measuring
+    RSSI_CONST = 2.3  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
+    tx_power = -67
 
     default_position = [0.0, 0.0]  # Entrance of the indoor area. This should be entered by the building authority
-    default_variance = [1.8, 1.8]  # Variance of the position by the IMU prediction
+    default_variance = [1.1, 1.1]  # Variance of the position by the IMU prediction
 
     device_name = "default"
     device_data = {}
@@ -168,7 +169,7 @@ class Device:
         receiver_x, receiver_y = self.get_coords_receiver(receivers_MAC)  ## collect data from database
         rssi = json_data["rssi"]
         # print(rssi)
-        tx_pow = -40
+        tx_pow = self.tx_power
 
         # distance calculation with RSSI value
         distance = rssi_dis.rssi_to_dist(tx_pow, rssi, self.RSSI_CONST)
@@ -214,8 +215,9 @@ class Device:
 
                     #save location in data base
 
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    # sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(self.device_data["var"][0] + self.device_data["var"][1]), str(device_id))
                     self.ils_cursor.execute(sql, val)
 
                     self.ils_db.commit()
@@ -237,11 +239,14 @@ class Device:
 
                     #save location in database
 
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    # sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(self.device_data["var"][0] + self.device_data["var"][1]), str(device_id))
                     self.ils_cursor.execute(sql, val)
-
+                    
                     self.ils_db.commit()
+                    # print(str(self.device_data["var"][0] + self.device_data["var"][1]))
+                    # print(self.ils_cursor.rowcount, "record(s) affected")
 
             else:
                 self.device_data["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
@@ -259,35 +264,9 @@ class Device:
 
                     # save location in data 
                     
-                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
-                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(device_id))
+                    sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s, variance = %s WHERE device_id = %s"
+                    # sql = "UPDATE position SET building_id = %s, x_position = %s, y_position = %s WHERE device_id = %s"
+                    val = (str(self.building_id), str(self.device_data["pos"][0]), str(self.device_data["pos"][1]), str(self.device_data["var"][0] + self.device_data["var"][1]), str(device_id))
                     self.ils_cursor.execute(sql, val)
 
                     self.ils_db.commit()
-
-# import csv
-# device_queue = {}
-# with open('data.csv') as csv_file:
-#     csv_reader = csv.reader(csv_file, delimiter=',')
-#     for row in csv_reader:
-#         json_data = {"seq_no": int(row[0]), "snsr_id": row[2], "tx_pow": -40, "rssi": int(row[3]), "mac": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
-#         j_d = json.dumps(json_data)
-#         print(type(j_d))
-#         # print(j_d)
-#         # j_data = json.load(j_d)
-#         # print(type(j_data))
-#         #thr = Thread(target=localization_with_rssi, args=(j_d,))
-#         #thr.start()
-#         # localization_with_rssi(j_d)
-#         # value = json.loads(message.payload.decode())
-#         # print(type(value))
-#         device_id = json_data["snsr_id"]
-
-#         if device_id not in device_queue:
-#             device_queue[device_id] = Device(device_id)
-#             device_queue[device_id].localization_with_rssi(j_d, True)
-
-#         else:
-#             device_queue[device_id].localization_with_rssi(j_d, False)
-
-#         print(device_queue)

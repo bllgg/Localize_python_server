@@ -84,8 +84,8 @@ with open('8m.csv') as csv_file:
 print (means)
 print (vars)
 
-tx_pow = -75
-const_n = 1.8 # Experimentally found value
+tx_pow = -67
+const_n = 2.3 #Experimentally found value 2.2
 
 def dist_to_rssi(dist):
     rssi = tx_pow - 10 * const_n * math.log10(dist)
