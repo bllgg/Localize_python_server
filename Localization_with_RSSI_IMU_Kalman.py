@@ -12,15 +12,15 @@ import madgwick
 G_A = 9.81 # Gravitational acceleration
 pi = math.pi
 dt = 0.1 # Sampling rate = 0.1 s
-Q = 0.5 # defined by experimental values of position prediction with acceleration
-R = 0.5 # defined by experimental values of position prediction with rssi position measuring
+Q = 3.0*10**(-4) # defined by experimental values of position prediction with acceleration
+R = 9.3 # defined by experimental values of position prediction with rssi position measuring
 RSSI_CONST = 1.8 # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
 
-default_position = [0.0, 0.0] # Entrance of the indoor area. This should be entered by the building authority
-default_variance = [1.8, 1.8] # Variance of the position by the IMU prediction
+default_position = [1.0, 1.0] # Entrance of the indoor area. This should be entered by the building authority
+default_variance = [0.01, 0.01] # Variance of the position by the IMU prediction
 
 # creating the madgwick object for access IMU processing functions.
-sensorfusion = madgwick.Madgwick(0.5)
+sensorfusion = madgwick.Madgwick(0.0)
 
 # Disable printings
 def blockPrint():
@@ -93,14 +93,17 @@ def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     # Kalman gain calculation
     K_S = var_S_bar / (var_S_bar + R)
     K_E = var_E_bar / (var_E_bar + R)
+    K_gain = (K_E + K_S) / 2
 
     # Position value update according to the kalman gain.
-    pos_S = pos_S_bar + K_S * (measured_pos[0] - pos_S_bar)
-    pos_E = pos_E_bar + K_E * (measured_pos[1] - pos_E_bar)
+    pos_S = pos_S_bar + K_gain * (measured_pos[0] - pos_S_bar)
+    pos_E = pos_E_bar + K_gain * (measured_pos[1] - pos_E_bar)
+    os.system("echo " + str(pos_S) + "," + str(pos_E) + " >> Log_files/stat_from_kalman_filter_after_tune_2.csv")
+
 
     # variance value update according to the kalman gain
-    var_S = var_S_bar * (1 - K_S)
-    var_E = var_E_bar * (1 - K_E)
+    var_S = var_S_bar * (1 - K_gain)
+    var_E = var_E_bar * (1 - K_gain)
 
     # Update the true speed value with the position difference
     true_speed_S = (pos_S - position[0]) / dt
@@ -184,7 +187,6 @@ def localization_with_rssi(json_data):
 
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_1"], device_id, ) )
                 # thr.start()
-                
 
                 # Cleaning the other two data buckets
                 device_queue[device_id]["s_2"] = []
@@ -225,13 +227,12 @@ def localization_with_rssi(json_data):
 
 
 ## test the code
-
 import csv
 
 print("Without threading")
 
 start_time = time.time()
-with open('test_3.csv') as csv_file:
+with open('gen_data/stat_gen_data_com_3.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -75, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
