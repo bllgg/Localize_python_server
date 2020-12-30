@@ -1,5 +1,5 @@
 import csv
-import random
+import os
 import math
 
 from numpy.random import seed
@@ -12,19 +12,27 @@ dt = 0.1
 filename_3 = "walk_gen_data_com_3.csv"
 filename_1 = "walk_gen_data_com_1.csv"
 
+try:
+    ret = os.system("rm " + filename_1 + " "+filename_3)
+    ret1 = os.system("rm ../../test_codes/Datasets/" + filename_1)
+    ret3 = os.system("rm ../../test_codes/Datasets/" + filename_3)
+except :
+    print("no files to delete")
+    pass
+
 ESP_1 = "24:6F:28:A9:64:C8"
 ESP_2 = "24:6F:28:A9:83:C8"
 ESP_3 = "24:6F:28:A9:87:40"
 
 dev_id = 255
 
-tx_pow = -75 # Experimentally found value 
-const_n = 1.8 # Experimentally found value
+tx_pow = -75  # Experimentally found value
+const_n = 1.8  # Experimentally found value
 
-RSSI_std = 1.5
+RSSI_std = 2.5
 acc_std = 0.001
-gyr_std = 0.001
-mag_std = 2.1
+gyr_std = 0.01
+mag_std = 1.2
 
 def dist_to_rssi(dist):
     rssi = tx_pow - 10 * const_n * math.log10(dist)
@@ -62,7 +70,7 @@ for i in range(data_len):
     prev_pos_y = new_pos_y
     prev_spd_y = new_spd_y
 
-print(Y_acc)
+# print(Y_acc)
 
 for itr in range(103):
     row_1 = []
@@ -197,3 +205,6 @@ for itr in range(103):
         csvwriter = csv.writer(csvfile)
         # writing the data rows  
         csvwriter.writerows([row_1])
+
+ret = os.system("cp " + filename_1 + " ../../test_codes/Datasets/" + filename_1)
+ret1 = os.system("cp " + filename_3 + " ../../test_codes/Datasets/" + filename_3)
