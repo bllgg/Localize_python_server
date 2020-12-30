@@ -36,7 +36,9 @@ def calc_location(details, device_id):
     P.solve()
     enablePrint()
     device_queue[device_id]["location"] = t.loc
-    print (t.loc)
+    print(t.loc.x, t.loc.y)
+    # os.system("echo " + str(t.loc.x) + "," + str(t.loc.y) + " >> Log_files/stat_only_from_rssi.csv")
+    os.system("echo " + str(t.loc.x) + "," + str(t.loc.y) + " >> Log_files/walk_only_from_rssi.csv")
     # return [t.loc.x, t.loc.y]
 
 '''
@@ -144,7 +146,7 @@ import csv
 print("Without threading")
 # blockPrint()
 start_time = time.time()
-with open('test_3.csv') as csv_file:
+with open('gen_data/walk_gen_data_com_3.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -75, "RSSI": int(row[3]), "MAC": row[1]}#, "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyro_x": row[7], "gyro_y": row[8], "gyro_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}

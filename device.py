@@ -30,6 +30,8 @@ class Device:
     building_id = None
     esp_devices = {}
 
+    #new variables are needed for moving average.
+
     # Disable printings
     def blockPrint(self):
         sys.stdout = open(os.devnull, 'w')
@@ -141,21 +143,6 @@ class Device:
             x = self.esp_devices[receivers_MAC][0]
             y = self.esp_devices[receivers_MAC][1]
 
-
-        # # ESP 1
-        # if receivers_MAC == "7C:9E:BD:F6:32:D8":
-        #     x = 1.7
-        #     y = 5.6
-
-        # # ESP 2
-        # if receivers_MAC == "24:6F:28:A9:64:C8":
-        #     x = 8.14
-        #     y = 6.2
-
-        # # ESP 3
-        # if receivers_MAC == "B8:F0:09:CD:35:10":
-        #     x = 2.8
-        #     y = 0.0
         return x, y
 
     def localization_with_rssi(self, json_data, first_signal):
