@@ -15,14 +15,14 @@ class Device:
     G_A = 9.81  # Gravitational acceleration
     pi = math.pi
     dt = 0.1  # Sampling rate = 0.1 s
-    Q = 4.5  # defined by experimental values of position prediction with acceleration
-    R = 4.5  # defined by experimental values of position prediction with rssi position measuring
+    Q = 3.0*10**(-4)  # defined by experimental values of position prediction with acceleration
+    R = 9.3  # defined by experimental values of position prediction with rssi position measuring
     RSSI_CONST = 2.3  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
     tx_power = -67
 
     default_position = [0.0, 0.0]  # Entrance of the indoor area. This should be entered by the building authority
-    default_variance = [1.1, 1.1]  # Variance of the position by the IMU prediction
-
+    default_variance = [0.01, 0.01]  # Variance of the position by the IMU prediction
+    temp_position = [0, 0]
     device_name = "default"
     device_data = {}
     # creating the madgwick object for access IMU processing functions.
@@ -165,6 +165,9 @@ class Device:
         gyr_ary = [float(json_data["gyr_x"]), float(json_data["gyr_y"]), float(json_data["gyr_z"])]
         mag_ary = [float(json_data["mag_x"]), float(json_data["mag_y"]), float(json_data["mag_z"])]
 
+        # calculate the Earth reference accelration values
+        earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+
         # Adding the device into the device queue
         if first_signal:
             if sequence_number % 3 == 0:
@@ -179,14 +182,27 @@ class Device:
             if sequence_number % 3 == 0:
                 # Append the data to the device que
                 self.device_data["s_1"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
+
+                if len(self.device_data["s_1"]) == 1:
+                    self.device_data["pos"] = self.temp_position
+
+                    # Speed values update
+                    speed_S = self.device_data["speed"][0] + self.dt * earth_acc[0]
+                    speed_E = self.device_data["speed"][1] + self.dt * earth_acc[1]
+                    # print (earth_acc[0], earth_acc[1])
+
+                    ## Prediction phase of the kalman filter
+                    # position prediction using IMU data
+                    pos_S_bar = self.device_data["pos"][0] + self.dt * speed_S
+                    pos_E_bar = self.device_data["pos"][1] + self.dt * speed_E
+
+                    self.temp_position = [pos_S_bar, pos_E_bar]
+
                 if len(self.device_data["s_1"]) >= 3:
                     # Do the trilateration
                     if len(self.device_data["s_1"]) == 3:
                         # calculate the location with the RSSI values
                         self.calc_location(self.device_data["s_1"], device_id)
-
-                        # calculate the Earth reference accelration values
-                        earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
 
                         # Filter data with kalman filter
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
@@ -211,10 +227,26 @@ class Device:
 
             elif sequence_number % 3 == 1:
                 self.device_data["s_2"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
+
+                if len(self.device_data["s_2"]) == 1:
+                    self.device_data["pos"] = self.temp_position
+
+                    # Speed values update
+                    speed_S = self.device_data["speed"][0] + self.dt * earth_acc[0]
+                    speed_E = self.device_data["speed"][1] + self.dt * earth_acc[1]
+                    # print (earth_acc[0], earth_acc[1])
+
+                    ## Prediction phase of the kalman filter
+                    # position prediction using IMU data
+                    pos_S_bar = self.device_data["pos"][0] + self.dt * speed_S
+                    pos_E_bar = self.device_data["pos"][1] + self.dt * speed_E
+
+                    self.temp_position = [pos_S_bar, pos_E_bar]
+
                 if len(self.device_data["s_2"]) >= 3:
                     if len(self.device_data["s_2"]) == 3:
                         self.calc_location(self.device_data["s_2"], device_id)
-                        earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+                        # earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
                         print(self.device_data["pos"])
 
@@ -237,10 +269,26 @@ class Device:
 
             else:
                 self.device_data["s_3"].append([distance, receivers_MAC, (receiver_x, receiver_y)])
+
+                if len(self.device_data["s_3"]) == 1:
+                    self.device_data["pos"] = self.temp_position
+
+                    # Speed values update
+                    speed_S = self.device_data["speed"][0] + self.dt * earth_acc[0]
+                    speed_E = self.device_data["speed"][1] + self.dt * earth_acc[1]
+                    # print (earth_acc[0], earth_acc[1])
+
+                    ## Prediction phase of the kalman filter
+                    # position prediction using IMU data
+                    pos_S_bar = self.device_data["pos"][0] + self.dt * speed_S
+                    pos_E_bar = self.device_data["pos"][1] + self.dt * speed_E
+
+                    self.temp_position = [pos_S_bar, pos_E_bar]
+
                 if len(self.device_data["s_3"]) >= 3:
                     if len(self.device_data["s_3"]) == 3:
                         self.calc_location(self.device_data["s_3"], device_id)
-                        earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+                        # earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
                         print(self.device_data["pos"])
                     # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
