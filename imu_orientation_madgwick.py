@@ -9,6 +9,7 @@ from statistics import mean
 from scipy.signal import detrend
 from statistics import variance
 from statistics import stdev
+import rssi_to_distance as rsd
 
 G_A = 9.81
 
@@ -43,18 +44,20 @@ new_arr = [0, 0, 0]
 mean_eax = 0
 mean_eay = 0
 
+distance_vals = []
 rssi_vals = []
 mag_x_vals = []
 mag_y_vals = []
 mag_z_vals = []
 
-with open('test_1.csv') as csvfile:
+with open('gen_data/stat_gen_data_com_1.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     for row in readCSV:
         seq_no.append(a)
         a+=1
         # acc_ary.append(row[4:7])
         rssi_vals.append(int(row[3]))
+        distance_vals.append(rsd.rssi_to_dist(-75, int(row[3]), 1.8))
         mag_x_vals.append(int(float(row[10])))
         mag_y_vals.append(int(float(row[11])))
         mag_z_vals.append(int(float(row[12])))
@@ -194,6 +197,9 @@ print("stddev s z", stdev(p_z_ary))
 print("mean south", mean(e_x_ary))
 print("mean east", mean(e_y_ary))
 print("mean down", mean(e_z_ary))
+print("variance south", variance(e_x_ary))
+print("variance east", variance(e_y_ary))
+print("variance down", variance(e_z_ary))
 
 print("mean x gyr", mean(p_x_gyr))
 print("stddev x gyr", stdev(p_x_gyr))
@@ -204,7 +210,9 @@ print("stddev z gyr", stdev(p_z_gyr))
 
 # print(rssi_vals)
 print("mean of RSSI", mean(rssi_vals))
-print("stddev of RSSI", stdev(rssi_vals))
+print("variance of RSSI", variance(rssi_vals))
+print("mean of Distances", mean(distance_vals))
+print("variance of Distances", variance(distance_vals))
 
 print("stddev x mag", stdev(mag_x_vals))
 print("stddev y mag", stdev(mag_y_vals))
