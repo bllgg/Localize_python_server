@@ -12,13 +12,16 @@ import madgwick
 G_A = 9.81 # Gravitational acceleration
 pi = math.pi
 dt = 0.1 # Sampling rate = 0.1 s
-Q = 3.0*10**(-4)  # defined by experimental values of position prediction with acceleration
-R = 9.3 # defined by experimental values of position prediction with rssi position measuring
+Q = 0.003  # 3.0*10**(-4)  # defined by experimental values of position prediction with acceleration
+R = 2.5 # defined by experimental values of position prediction with rssi position measuring
 RSSI_CONST = 1.8 # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
 
-default_position = [1.0, 1.0] # Entrance of the indoor area. This should be entered by the building authority
-default_variance = [0.01, 0.01] # Variance of the position by the IMU prediction
-temp_position = [0, 0]
+default_position = [1.0, 1.0]  # Entrance of the indoor area. This should be entered by the building authority
+default_variance = [0.01, 0.01]  # Variance of the position by the IMU prediction
+temp_position = [1, 1]
+prev_earth_accelerations = [0, 0, 1]
+prev_pos_s = 1.0
+prev_pos_e = 1.0
 # creating the madgwick object for access IMU processing functions.
 sensorfusion = madgwick.Madgwick(0.0)
 
@@ -76,6 +79,7 @@ def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
 # filtering both RSSI and IMU data with Kalman filter
 def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     # Speed values update
+    global prev_pos_s, prev_pos_e
     speed_S = speed[0] + dt * earth_acc[0]
     speed_E = speed[1] + dt * earth_acc[1]
     # print (earth_acc[0], earth_acc[1])
@@ -98,7 +102,13 @@ def kalman_filter(measured_pos, position, speed, variance, earth_acc):
     # Position value update according to the kalman gain.
     pos_S = pos_S_bar + K_gain * (measured_pos[0] - pos_S_bar)
     pos_E = pos_E_bar + K_gain * (measured_pos[1] - pos_E_bar)
-    os.system("echo " + str(pos_S) + "," + str(pos_E) + " >> Log_files/walk_from_kalman_filter_after_tune_3.csv")
+    temp_pos = [pos_S, pos_E]
+    pos_S = (pos_S + prev_pos_s) / 2
+    pos_E = (pos_E + prev_pos_e) / 2
+
+    [prev_pos_s, prev_pos_e] = temp_pos
+
+    os.system("echo " + str(pos_S) + "," + str(pos_E) + " >> Log_files/walk_from_kalman_filter_after_tune_4.csv")
 
 
     # variance value update according to the kalman gain
@@ -147,9 +157,10 @@ def localization_with_rssi(json_data):
     receivers_MAC = json_data["MAC"]
     receiver_x, receiver_y = get_coords_receiver(receivers_MAC) ## collect data from database
     rssi = json_data["RSSI"]
-    tx_pow = json_data["tx_pow"]
+    tx_pow = -75  # json_data["tx_pow"]
 
     global temp_position
+    global prev_earth_accelerations
 
     # distance calculation with RSSI value
     distance = rssi_dis.rssi_to_dist(tx_pow, rssi, RSSI_CONST)
@@ -160,6 +171,10 @@ def localization_with_rssi(json_data):
     
     # calculate the Earth reference accelration values
     earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
+    #Do some prev work
+    temp_acc = earth_acc
+    earth_acc = [(prev_earth_accelerations[0]+earth_acc[0])/2, (prev_earth_accelerations[1]+earth_acc[1])/2, (prev_earth_accelerations[2]+earth_acc[2])/2]
+    prev_earth_accelerations = temp_acc
 
     # Adding the device into the device queue
     if device_id not in device_queue:
@@ -284,10 +299,10 @@ def localization_with_rssi(json_data):
 import csv
 
 print("Without threading")
-# os.system("rm Log_files/stat_from_kalman_filter_after_tune_3.csv")
+# os.system("rm Log_files/stat_from_kalman_filter_after_tune_4.csv")
 
 start_time = time.time()
-with open('gen_data/walk_gen_data_com_3_edited.csv') as csv_file:
+with open('gen_data/walk_gen_data_com_3.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         json_data = {"seq_num": int(row[0]), "dev_id": row[2], "tx_pow": -75, "RSSI": int(row[3]), "MAC": row[1], "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8], "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
