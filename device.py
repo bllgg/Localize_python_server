@@ -15,14 +15,17 @@ class Device:
     G_A = 9.81  # Gravitational acceleration
     pi = math.pi
     dt = 0.1  # Sampling rate = 0.1 s
-    Q = 3.0*10**(-4)  # defined by experimental values of position prediction with acceleration
-    R = 9.3  # defined by experimental values of position prediction with rssi position measuring
+    Q = 0.003  # defined by experimental values of position prediction with acceleration
+    R = 2.5  # defined by experimental values of position prediction with rssi position measuring
     RSSI_CONST = 2.3  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
     tx_power = -67
 
-    default_position = [0.0, 0.0]  # Entrance of the indoor area. This should be entered by the building authority
+    default_position = [1.0, 1.0]  # Entrance of the indoor area. This should be entered by the building authority
     default_variance = [0.01, 0.01]  # Variance of the position by the IMU prediction
-    temp_position = [0, 0]
+    temp_position = [1.0, 1.0]
+    prev_earth_accelerations = [0, 0, 1]
+    prev_pos_s = 1.0
+    prev_pos_e = 1.0
     device_name = "default"
     device_data = {}
     # creating the madgwick object for access IMU processing functions.
@@ -109,10 +112,16 @@ class Device:
         # Kalman gain calculation
         K_S = var_S_bar / (var_S_bar + self.R)
         K_E = var_E_bar / (var_E_bar + self.R)
+        K_gain = (K_E + K_S) / 2
 
         # Position value update according to the kalman gain.
         pos_S = pos_S_bar + K_S * (measured_pos[0] - pos_S_bar)
         pos_E = pos_E_bar + K_E * (measured_pos[1] - pos_E_bar)
+        temp_pos = [pos_S, pos_E]
+        pos_S = (pos_S + self.prev_pos_s) / 2
+        pos_E = (pos_E + self.prev_pos_e) / 2
+
+        [self.prev_pos_s, self.prev_pos_e] = temp_pos
 
         # variance value update according to the kalman gain
         var_S = var_S_bar * (1 - K_S)
@@ -206,6 +215,7 @@ class Device:
 
                         # Filter data with kalman filter
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
+                        self.temp_position = self.device_data["pos"]
 
                         print(self.device_data["pos"])
 
@@ -248,6 +258,7 @@ class Device:
                         self.calc_location(self.device_data["s_2"], device_id)
                         # earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
+                        self.temp_position = self.device_data["pos"]
                         print(self.device_data["pos"])
 
                     # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
@@ -290,6 +301,7 @@ class Device:
                         self.calc_location(self.device_data["s_3"], device_id)
                         # earth_acc = self.imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                         self.device_data["pos"], self.device_data["speed"], self.device_data["var"] = self.kalman_filter(self.device_data["location"], self.device_data["pos"], self.device_data["speed"], self.device_data["var"], earth_acc)
+                        self.temp_position = self.device_data["pos"]
                         print(self.device_data["pos"])
                     # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                     # thr.start()

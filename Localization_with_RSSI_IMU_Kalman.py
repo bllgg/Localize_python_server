@@ -253,6 +253,7 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_2"], device_id)
                     # earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                     device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+                    temp_position = device_queue[device_id]["pos"]
                     print(device_queue[device_id]["pos"])
                 
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_2"], device_id, ) )
@@ -285,6 +286,7 @@ def localization_with_rssi(json_data):
                     calc_location(device_queue[device_id]["s_3"], device_id)
                     # earth_acc = imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary)
                     device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"] = kalman_filter(device_queue[device_id]["location"], device_queue[device_id]["pos"], device_queue[device_id]["speed"], device_queue[device_id]["var"], earth_acc)
+                    temp_position = device_queue[device_id]["pos"]
                     print(device_queue[device_id]["pos"])
                 # thr = Thread(target=calc_location, args=(device_queue[device_id]["s_3"], device_id, ) )
                 # thr.start()
@@ -299,7 +301,7 @@ def localization_with_rssi(json_data):
 import csv
 
 print("Without threading")
-# os.system("rm Log_files/stat_from_kalman_filter_after_tune_4.csv")
+os.system("rm Log_files/walk_from_kalman_filter_after_tune_4.csv")
 
 start_time = time.time()
 with open('gen_data/walk_gen_data_com_3.csv') as csv_file:
