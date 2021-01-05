@@ -30,7 +30,7 @@ tx_pow = -75  # Experimentally found value
 const_n = 1.8  # Experimentally found value
 
 RSSI_std = 2.5
-acc_std = 0.001
+acc_std = 0.01
 gyr_std = 0.01
 mag_std = 1.2
 

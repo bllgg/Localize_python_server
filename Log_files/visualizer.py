@@ -2,6 +2,7 @@ import numpy as np
 import time
 import csv
 import cv2
+import math
 
 np.set_printoptions(threshold=3)
 np.set_printoptions(suppress=True)
@@ -70,13 +71,16 @@ with open('stat_from_kalman_filter_after_tune_2.csv') as csv_file:  # kalman wal
         for landmark in landmarks:
             cv2.circle(img, tuple(landmark), 20, (255, 0, 0), -1)
 
-        r_pos_x = float(row[0])*100
-        r_pos_y = 781 - float(row[1])*100
+        # r_pos_x = (float(row[0]) * math.cos(np.radians(-17)) - float(row[1]) * math.sin(np.radians(-17)))*100
+        # r_pos_y = 781 - (float(row[0]) * math.sin(np.radians(-17)) + float(row[1]) * math.cos(np.radians(-17)))*100
+        r_pos_x = float(row[0]) * 100
+        r_pos_y = 781 - float(row[1]) * 100
         real_pos = np.array([[int(r_pos_x), int(r_pos_y)]])
         trajectory = np.vstack((trajectory, real_pos))
         drawLines(img, trajectory, 0, 255, 0)
         drawCross(img, center, r=255, g=0, b=0)
         drawCross(img, real_pos, r=255, g=0, b=255)
+        drawCross(img, np.array([[200, 780 - 200]]), b=255, g=0, r=0)  # the physical position
         time.sleep(0.1)
 
 cv2.waitKey(0)
