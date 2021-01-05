@@ -20,6 +20,7 @@ default_position = [1.0, 1.0]  # Entrance of the indoor area. This should be ent
 default_variance = [0.01, 0.01]  # Variance of the position by the IMU prediction
 temp_position = [1, 1]
 prev_earth_accelerations = [0, 0, 1]
+earth_accelerations = [0, 0, 1]
 prev_pos_s = 1.0
 prev_pos_e = 1.0
 # creating the madgwick object for access IMU processing functions.
@@ -61,7 +62,7 @@ def calc_location(details, device_id):
 def imu_earth_ref_accs(acc_ary, gyr_ary, mag_ary):
     # this is littlebit tricky. We have to calculate it 10 times. Othervise it will be wrong
     for j in range(10):
-        sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0] + 0.00246, gyr_ary[1] - 0.00185, gyr_ary[2] + 0.00285, mag_ary[0], mag_ary[1], mag_ary[2], dt)
+        sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0], gyr_ary[1], gyr_ary[2], mag_ary[0], mag_ary[1], mag_ary[2], dt)
 
     # Get the quatarnian value of calculated orientation    
     quatarian = sensorfusion.q
