@@ -80,6 +80,7 @@ with open('stat_from_kalman_filter_after_tune_2.csv') as csv_file:  # kalman wal
         drawLines(img, trajectory, 0, 255, 0)
         drawCross(img, center, r=255, g=0, b=0)
         drawCross(img, real_pos, r=255, g=0, b=255)
+        drawCross(img, np.array([[200, 780 - 200]]), b=255, g=0, r=0)  # the physical position
         time.sleep(0.1)
 
 cv2.waitKey(0)
