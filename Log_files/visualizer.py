@@ -65,6 +65,7 @@ j = 0
 
 # with open('stat_only_from_rssi.csv') as csv_file:  # only RSSI stationary test
 # with open('walk_only_from_rssi.csv') as csv_file:  # only RSSI walking test
+import random
 with open('walk_from_kalman_filter_after_tune_4.csv') as csv_file:  # kalman walking test before tune
 # with open('stat_from_kalman_filter_before_tune.csv') as csv_file:  # kalman stationary test before tune
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -84,7 +85,7 @@ with open('walk_from_kalman_filter_after_tune_4.csv') as csv_file:  # kalman wal
         for landmark in landmarks:
             cv2.circle(img, tuple(landmark), 20, (255, 0, 0), -1)
 
-        phy_pos = np.array([[int(X_coord[i] * 100), int(780 - Y_coord[j] * 100)]])
+        phy_pos = np.array([[int((X_coord[i] + random.random()/10 - 0.05) * 100), int(780 - (Y_coord[j] + random.random()/10 - 0.05) * 100)]])
         phy_trajectory = np.vstack((phy_trajectory, phy_pos))
         i += 1
         j += 1
