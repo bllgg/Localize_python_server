@@ -38,7 +38,7 @@ def calc_location(details, device_id):
     device_queue[device_id]["location"] = t.loc
     print(t.loc.x, t.loc.y)
     # os.system("echo " + str(t.loc.x) + "," + str(t.loc.y) + " >> Log_files/stat_only_from_rssi.csv")
-    os.system("echo " + str(t.loc.x) + "," + str(t.loc.y) + " >> Log_files/real_data_thameera_stat_only_from_rssi.csv")
+    os.system("echo " + str(t.loc.x) + "," + str(t.loc.y) + " >> Log_files/A_new_rssi.csv")
     # return [t.loc.x, t.loc.y]
 
 '''

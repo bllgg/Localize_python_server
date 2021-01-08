@@ -1,6 +1,6 @@
 import rssi_to_distance as rssi_dis
 import numpy as np
-import localization as lx
+import trilateration_lse as lx
 from threading import Thread
 import math
 import json
@@ -56,7 +56,9 @@ class Device:
     def calc_location(self, details, device_id):
         self.blockPrint()
         # Setting up the mode and solver.
-        P = lx.Project(mode="2D", solver="LSE")
+        # P = lx.Project(mode="2D", solver="LSE")
+        P = lx.Project()
+
         # Adding anchor tags of ESP32 devices
         for i in details:
             P.add_anchor(i[1], i[2])
