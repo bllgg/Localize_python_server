@@ -15,7 +15,7 @@ G_A = 9.81
 
 pi = math.pi
 dt = 0.1
-sensorfusion = madgwick.Madgwick(0.0)
+sensorfusion = madgwick.Madgwick(0.5)
 
 seq_no=[]
 a=0
@@ -54,7 +54,7 @@ with open('gen_data/stat_gen_data_com_1.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     for row in readCSV:
         seq_no.append(a)
-        a+=1
+        a += 1
         # acc_ary.append(row[4:7])
         rssi_vals.append(int(row[3]))
         distance_vals.append(rsd.rssi_to_dist(-75, int(row[3]), 1.8))
@@ -76,7 +76,7 @@ with open('gen_data/stat_gen_data_com_1.csv') as csvfile:
         # gyr_ary.append(row[7:10])
         # mag_ary.append(row[10:])
         gyr_ary = [round(float(i),3) for i in row[7:10]]
-        
+
         p_x_gyr.append(gyr_ary[0])
         p_y_gyr.append(gyr_ary[1])
         p_z_gyr.append(gyr_ary[2])
@@ -167,6 +167,7 @@ plt.suptitle("Earth reference speed histogram")
 plt.figure()
 x_pos = cumtrapz(cumtrapz(e_x_ary,dx=0.1),dx=0.1)
 y_pos = cumtrapz(cumtrapz(e_y_ary,dx=0.1),dx=0.1)
+print("length of xPos", len(x_pos))
 
 plt.plot(seq_no[2:], y_pos)
 plt.suptitle("East Position")

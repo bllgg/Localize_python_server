@@ -11,7 +11,7 @@ class Madgwick:
 	refer to examples of the git repo
 
 	"""
-	def __init__(self, b = 0.0):
+	def __init__(self, b = 0.1):
 		"""
 		Initialises all the variables. 
 
@@ -22,7 +22,7 @@ class Madgwick:
 		
 		GyroMeasError = np.pi * (40.0 / 180.0)
 		# self.beta = np.sqrt(3.0 / 4.0) * GyroMeasError
-		self.beta = 0.0
+		self.beta = b
 		self.q = np.array([1.0, 0.0, 0.0, 0.0])
 		self.roll = 0
 		self.pitch = 0
