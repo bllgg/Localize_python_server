@@ -10,6 +10,7 @@ import os
 import madgwick
 import mysql.connector
 
+file_name = "A_C_B_A"
 
 class Device:
     G_A = 9.81  # Gravitational acceleration
@@ -357,33 +358,33 @@ class Device:
 
 # TEST CODE
 
-# import csv
-# ils_db = mysql.connector.connect(
-#   host="localhost",
-#   user="root",
-#   password="",
-#   database="Localization"
-# )
-#
-# ils_cursor = ils_db.cursor(buffered=True)
-# device_queue = {}
-#
-# os.system("rm Log_files/Device_walk_gen_data_com_3_res.csv")
-#
-# with open('gen_data/walk_gen_data_com_3.csv') as csv_file:
-#     csv_reader = csv.reader(csv_file, delimiter=',')
-#     for row in csv_reader:
-#         json_data = {"seq_no": int(row[0]), "dev_id": row[2], "tx_pow": -75, "rssi": int(row[3]), "mac": row[1],
-#                      "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8],
-#                      "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
-#         msg = json.dumps(json_data)
-#         # thr = Thread(target=localization_with_rssi, args=(j_d,))
-#         # thr.start()
-#         # localization_with_rssi(j_d)
-#         device_id = json_data["dev_id"]
-#         if device_id not in device_queue:
-#             device_queue[device_id] = Device(device_id, ils_cursor, ils_db)
-#             device_queue[device_id].localization_with_rssi(msg, True)
-#
-#         else:
-#             device_queue[device_id].localization_with_rssi(msg, False)
+import csv
+ils_db = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="Localization"
+)
+
+ils_cursor = ils_db.cursor(buffered=True)
+device_queue = {}
+
+os.system('rm Log_files/'+file_name+'.csv')
+
+with open('Collected_Data/walking_times/'+file_name+'.csv') as csv_file:
+    csv_reader = csv.reader(csv_file, delimiter=',')
+    for row in csv_reader:
+        json_data = {"seq_no": int(row[0]), "dev_id": row[2], "tx_pow": -67, "rssi": int(row[3]), "mac": row[1],
+                     "acc_x": row[4], "acc_y": row[5], "acc_z": row[6], "gyr_x": row[7], "gyr_y": row[8],
+                     "gyr_z": row[9], "mag_x": row[10], "mag_y": row[11], "mag_z": row[12]}
+        msg = json.dumps(json_data)
+        # thr = Thread(target=localization_with_rssi, args=(j_d,))
+        # thr.start()
+        # localization_with_rssi(j_d)
+        device_id = json_data["dev_id"]
+        if device_id not in device_queue:
+            device_queue[device_id] = Device(device_id, ils_cursor, ils_db)
+            device_queue[device_id].localization_with_rssi(msg, True)
+
+        else:
+            device_queue[device_id].localization_with_rssi(msg, False)
