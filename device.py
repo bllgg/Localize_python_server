@@ -14,18 +14,18 @@ import mysql.connector
 class Device:
     G_A = 9.81  # Gravitational acceleration
     pi = math.pi
-    dt = 0.1  # Sampling rate = 0.1 s
-    Q = 0.003  # defined by experimental values of position prediction with acceleration
+    dt = 1.0 / 7.6  # Sampling rate = 0.1 s
+    Q = 0.003 # defined by experimental values of position prediction with acceleration
     R = 2.5  # defined by experimental values of position prediction with rssi position measuring
     RSSI_CONST = 2.3  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
     tx_power = -67
 
-    default_position = [1.0, 1.0]  # Entrance of the indoor area. This should be entered by the building authority
-    default_variance = [0.01, 0.01]  # Variance of the position by the IMU prediction
-    temp_position = [1.0, 1.0]
+    default_position = [1.8,1.0]  # Entrance of the indoor area. This should be entered by the building authority
+    default_variance = [1.004, 1.004]  # Variance of the position by the IMU prediction
+    temp_position = [1.8,1.0]
     prev_earth_accelerations = [0, 0, 1]
     earth_accelerations = [0, 0, 1]
-    prev_pos_s = 1.0
+    prev_pos_s = 1.8
     prev_pos_e = 1.0
     device_name = "default"
     device_data = {}
@@ -46,7 +46,7 @@ class Device:
 
     # def __init__(self, device_id): 
     def __init__(self, device_id, ils_cursor, ils_db):
-        self.sensorfusion = madgwick.Madgwick(0.0)
+        self.sensorfusion = madgwick.Madgwick(0.5)
         self.device_name = device_id
         self.ils_cursor = ils_cursor
         self.ils_db = ils_db
@@ -79,8 +79,8 @@ class Device:
 
     def imu_earth_ref_accs(self, acc_ary, gyr_ary, mag_ary):
         # this is littlebit tricky. We have to calculate it 10 times. Othervise it will be wrong
-        for j in range(10):
-            self.sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0], gyr_ary[1], gyr_ary[2], mag_ary[0], mag_ary[1], mag_ary[2], self.dt)
+        for j in range(60):
+            self.sensorfusion.updateRollPitchYaw(acc_ary[0], acc_ary[1], acc_ary[2], gyr_ary[0] - 0.1368348623853211, gyr_ary[1] - 0.0949453530115676, gyr_ary[2] - 0.1028065416832868, mag_ary[0], mag_ary[1], mag_ary[2], self.dt)
         # self.sensorfusion.updateRollPitchYaw()
         # Get the quatarnian value of calculated orientation
         quatarian = self.sensorfusion.q
@@ -108,8 +108,8 @@ class Device:
         pos_E_bar = position[1] + self.dt * speed_E
 
         # variance prediction
-        var_S_bar = variance[0] + self.Q
-        var_E_bar = variance[1] + self.Q
+        var_S_bar = variance[0] #+ self.Q
+        var_E_bar = variance[1] #+ self.Q
 
         ## Update phase
         # Kalman gain calculation
@@ -118,8 +118,8 @@ class Device:
         K_gain = (K_E + K_S) / 2
 
         # Position value update according to the kalman gain.
-        pos_S = pos_S_bar + K_gain * (measured_pos[0] - pos_S_bar)
-        pos_E = pos_E_bar + K_gain * (measured_pos[1] - pos_E_bar)
+        pos_S = pos_S_bar + K_S * (measured_pos[0] - pos_S_bar)
+        pos_E = pos_E_bar + K_E * (measured_pos[1] - pos_E_bar)
         temp_pos = [pos_S, pos_E]
         pos_S = (pos_S + self.prev_pos_s) / 2
         pos_E = (pos_E + self.prev_pos_e) / 2
@@ -127,12 +127,18 @@ class Device:
         [self.prev_pos_s, self.prev_pos_e] = temp_pos
 
         # variance value update according to the kalman gain
-        var_S = var_S_bar * (1 - K_gain)
-        var_E = var_E_bar * (1 - K_gain)
+        var_S = var_S_bar * (1 - K_S)
+        var_E = var_E_bar * (1 - K_E)
+        print(var_S, var_E)
 
         # Update the true speed value with the position difference
         true_speed_S = (pos_S - position[0]) / self.dt
         true_speed_E = (pos_E - position[1]) / self.dt
+        if true_speed_S > 3 or true_speed_S < -3:
+            true_speed_S = 0
+        if true_speed_E > 3 or true_speed_E < -3:
+            true_speed_E = 0
+        # print("speeds", true_speed_S, true_speed_E)
 
         # print ('position: [{},{}], speed: [{},{}], variance: [{},{}]'.format(pos_E, pos_N, true_speed_E, true_speed_N, var_E, var_N))
         return [pos_S, pos_E], [true_speed_S, true_speed_E], [var_S, var_E]
