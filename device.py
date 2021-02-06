@@ -1,6 +1,7 @@
 import rssi_to_distance as rssi_dis
 import numpy as np
-import trilateration_lse as lx
+# import trilateration_lse as lx
+import localization as lx
 from threading import Thread
 import math
 import json
@@ -15,14 +16,14 @@ file_name = "A_C_B_A"
 class Device:
     G_A = 9.81  # Gravitational acceleration
     pi = math.pi
-    dt = 1.0 / 7.6  # Sampling rate = 0.1 s
-    Q = 0.003 # defined by experimental values of position prediction with acceleration
+    dt = 0.1  # Sampling rate = 0.1 s
+    Q = 0.03  # defined by experimental values of position prediction with acceleration
     R = 2.5  # defined by experimental values of position prediction with rssi position measuring
     RSSI_CONST = 2.3  # This value is taken by experimental results. Constant regarding to the RSSI distance calculation
     tx_power = -67
 
     default_position = [1.8,1.0]  # Entrance of the indoor area. This should be entered by the building authority
-    default_variance = [1.004, 1.004]  # Variance of the position by the IMU prediction
+    default_variance = [1.013, 1.013]  # Variance of the position by the IMU prediction
     temp_position = [1.8,1.0]
     prev_earth_accelerations = [0, 0, 1]
     earth_accelerations = [0, 0, 1]
@@ -47,7 +48,7 @@ class Device:
 
     # def __init__(self, device_id): 
     def __init__(self, device_id, ils_cursor, ils_db):
-        self.sensorfusion = madgwick.Madgwick(0.5)
+        self.sensorfusion = madgwick.Madgwick(0.03)
         self.device_name = device_id
         self.ils_cursor = ils_cursor
         self.ils_db = ils_db
@@ -122,15 +123,15 @@ class Device:
         pos_S = pos_S_bar + K_S * (measured_pos[0] - pos_S_bar)
         pos_E = pos_E_bar + K_E * (measured_pos[1] - pos_E_bar)
         temp_pos = [pos_S, pos_E]
-        pos_S = (pos_S + self.prev_pos_s) / 2
-        pos_E = (pos_E + self.prev_pos_e) / 2
+        pos_S = 0.9 * pos_S + 0.1 * self.prev_pos_s
+        pos_E = 0.9 * pos_E + 0.1 * self.prev_pos_e
 
         [self.prev_pos_s, self.prev_pos_e] = temp_pos
 
         # variance value update according to the kalman gain
         var_S = var_S_bar * (1 - K_S)
         var_E = var_E_bar * (1 - K_E)
-        print(var_S, var_E)
+        # print(var_S, var_E)
 
         # Update the true speed value with the position difference
         true_speed_S = (pos_S - position[0]) / self.dt
@@ -206,9 +207,9 @@ class Device:
 
                     # averaging the acceleration data
                     temp_acc = self.earth_accelerations
-                    self.earth_accelerations = [(self.prev_earth_accelerations[0] + self.earth_accelerations[0]) / 2,
-                                                (self.prev_earth_accelerations[1] + self.earth_accelerations[1]) / 2,
-                                                (self.prev_earth_accelerations[2] + self.earth_accelerations[2]) / 2]
+                    self.earth_accelerations = [0.1 * self.prev_earth_accelerations[0] + 0.9 * self.earth_accelerations[0],
+                                                0.1 * self.prev_earth_accelerations[1] + 0.9 * self.earth_accelerations[1],
+                                                0.1 * self.prev_earth_accelerations[2] + 0.9 * self.earth_accelerations[2]]
                     self.prev_earth_accelerations = temp_acc
 
                     self.device_data["pos"] = self.temp_position
@@ -262,9 +263,9 @@ class Device:
 
                     # averaging the acceleration data
                     temp_acc = self.earth_accelerations
-                    self.earth_accelerations = [(self.prev_earth_accelerations[0] + self.earth_accelerations[0]) / 2,
-                                                (self.prev_earth_accelerations[1] + self.earth_accelerations[1]) / 2,
-                                                (self.prev_earth_accelerations[2] + self.earth_accelerations[2]) / 2]
+                    self.earth_accelerations = [0.1 * self.prev_earth_accelerations[0] + 0.9 * self.earth_accelerations[0],
+                                                0.1 * self.prev_earth_accelerations[1] + 0.9 * self.earth_accelerations[1],
+                                                0.1 * self.prev_earth_accelerations[2] + 0.9 * self.earth_accelerations[2]]
                     self.prev_earth_accelerations = temp_acc
 
                     self.device_data["pos"] = self.temp_position
@@ -315,9 +316,9 @@ class Device:
 
                     # averaging the acceleration data
                     temp_acc = self.earth_accelerations
-                    self.earth_accelerations = [(self.prev_earth_accelerations[0] + self.earth_accelerations[0]) / 2,
-                                                (self.prev_earth_accelerations[1] + self.earth_accelerations[1]) / 2,
-                                                (self.prev_earth_accelerations[2] + self.earth_accelerations[2]) / 2]
+                    self.earth_accelerations = [0.1 * self.prev_earth_accelerations[0] + 0.9 * self.earth_accelerations[0],
+                                                0.1 * self.prev_earth_accelerations[1] + 0.9 * self.earth_accelerations[1],
+                                                0.1 * self.prev_earth_accelerations[2] + 0.9 * self.earth_accelerations[2]]
                     self.prev_earth_accelerations = temp_acc
 
                     self.device_data["pos"] = self.temp_position
